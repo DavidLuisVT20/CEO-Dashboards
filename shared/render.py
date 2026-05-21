@@ -1,10 +1,13 @@
 """
-Finanzas Dashboard · Addiuva BI — Showroom edition
-Streamlit wrapper that embeds the React + D3 dashboard as an HTML component.
+Shared dashboard renderer · Addiuva BI — Showroom edition
+Reusable Streamlit wrapper that embeds a React + D3 dashboard as an HTML component.
 
 Design decision: zero build step. The JSX file lives untouched; at runtime we
 strip ES-module syntax (imports / exports) and hand the rest to @babel/standalone
 inside an iframe. Good for demos & stakeholder reviews, not for production.
+
+Extracted verbatim from the original single-page Finanzas app.py so that every
+dashboard page (Finanzas, Operaciones, ...) shares one transpilation pipeline.
 """
 
 from __future__ import annotations
@@ -14,35 +17,11 @@ from pathlib import Path
 
 import streamlit as st
 
-# ---------- Page config ----------
-st.set_page_config(
-    page_title="Finanzas · Addiuva BI",
-    page_icon="💎",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
 
-# Strip Streamlit's default chrome so the dashboard owns the full viewport.
-st.markdown(
-    """
-    <style>
-      #MainMenu, footer, header { visibility: hidden; }
-      .stApp { background: #050214; }
-      .block-container {
-          padding: 0 !important;
-          max-width: 100% !important;
-      }
-      iframe { border: 0; display: block; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# ---------- JSX ↔ browser adapter ----------
+# ---------- JSX -> browser adapter ----------
 def adapt_jsx_for_browser(jsx: str) -> str:
     """
-    v3 ships as an ES module (imports at top, default export at bottom).
+    The dashboards ship as ES modules (imports at top, default export at bottom).
     In-browser Babel doesn't resolve modules, so we:
       1. Strip all `import ...;` statements (React & d3 arrive as globals via CDN)
       2. Drop `export default` prefix (we call App() manually below)
@@ -60,20 +39,19 @@ def adapt_jsx_for_browser(jsx: str) -> str:
     return jsx.strip()
 
 
-JSX_PATH = Path(__file__).parent / "dashboard.jsx"
-raw_jsx = JSX_PATH.read_text(encoding="utf-8")
-clean_jsx = adapt_jsx_for_browser(raw_jsx)
-
-
 # ---------- HTML shell ----------
 # We assemble via concatenation (not f-strings) because the JSX contains literal
-# curly braces by the thousand and escaping each one would be brutal.
-HTML_HEAD = """<!DOCTYPE html>
+# curly braces by the thousand and escaping each one would be brutal. The shell
+# is split around the <title> tag so each page can supply its own document title
+# without touching the transpilation pipeline below.
+_HTML_HEAD_PRE = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finanzas · Addiuva BI</title>
+  <title>"""
+
+_HTML_HEAD_POST = """</title>
 
   <!-- React 18 (UMD) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -120,7 +98,7 @@ HTML_HEAD = """<!DOCTYPE html>
 
 """
 
-HTML_TAIL = """
+_HTML_TAIL = """
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
@@ -128,10 +106,50 @@ HTML_TAIL = """
 </html>
 """
 
-dashboard_html = HTML_HEAD + clean_jsx + HTML_TAIL
 
+def render_dashboard(jsx_path: str, page_title: str, page_icon: str) -> None:
+    """
+    Render a React + D3 dashboard inside a Streamlit page.
 
-# ---------- Embed ----------
-# Height is fixed by Streamlit's iframe; internal scroll takes care of overflow
-# on narrower viewports. 1500px covers the full grid at desktop+ widths.
-st.components.v1.html(dashboard_html, height=1500, scrolling=True)
+    Must be the first thing a page executes: it calls st.set_page_config().
+
+    Args:
+        jsx_path:   absolute path to the .jsx source file.
+        page_title: browser tab / page config title.
+        page_icon:  emoji or icon for the browser tab.
+    """
+    # set_page_config must run before any other Streamlit call on the page.
+    st.set_page_config(
+        page_title=page_title,
+        page_icon=page_icon,
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
+    # Strip Streamlit's default chrome so the dashboard owns the full viewport.
+    # The sidebar is left intact on purpose so native multipage nav stays usable.
+    st.markdown(
+        """
+        <style>
+          #MainMenu, footer, header { visibility: hidden; }
+          .stApp { background: #050214; }
+          .block-container {
+              padding: 0 !important;
+              max-width: 100% !important;
+          }
+          iframe { border: 0; display: block; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    raw_jsx = Path(jsx_path).read_text(encoding="utf-8")
+    clean_jsx = adapt_jsx_for_browser(raw_jsx)
+
+    dashboard_html = (
+        _HTML_HEAD_PRE + page_title + _HTML_HEAD_POST + clean_jsx + _HTML_TAIL
+    )
+
+    # Height is fixed by Streamlit's iframe; internal scroll takes care of overflow
+    # on narrower viewports. 1500px covers the full grid at desktop+ widths.
+    st.components.v1.html(dashboard_html, height=1500, scrolling=True)
