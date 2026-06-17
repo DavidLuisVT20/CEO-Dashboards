@@ -236,7 +236,11 @@ def fig_status_by_dim(df, dim_col):
                     hovertemplate="%{y} — " + s + "<br>%{x:.1f}%  (%{customdata:,.0f})<extra></extra>")
     fig.update_layout(barmode="stack")
     fig.update_xaxes(ticksuffix="%", range=[0, 100])
-    return _style(fig, height=max(220, 30 * len(order) + 70))
+    fig = _style(fig, height=max(260, 34 * len(order) + 120))
+    # leyenda (puede envolver en 2 filas) debajo del eje de %; margen inferior amplio
+    fig.update_layout(margin=dict(l=8, r=8, t=12, b=95),
+                      legend=dict(y=-0.42))
+    return fig
 
 
 def fig_treemap(df):
