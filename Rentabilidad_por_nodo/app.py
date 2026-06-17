@@ -192,7 +192,11 @@ def fig_trend(df):
     fig.update_xaxes(tickmode="array", tickvals=months,
                      ticktext=[f"{MESES[pd.Timestamp(m).month]}<br>{pd.Timestamp(m).year}"
                                for m in months])
-    return _style(fig, height=300)
+    fig = _style(fig, height=330)
+    # leyenda debajo de las etiquetas de dos líneas (mes/año); margen inferior para que quepa
+    fig.update_layout(margin=dict(l=8, r=8, t=12, b=92),
+                      legend=dict(y=-0.42))
+    return fig
 
 
 def fig_participation(df, dim_col, top=None, horizontal=True):
