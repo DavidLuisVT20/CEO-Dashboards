@@ -2,14 +2,13 @@
 Tablero de Servicios — Addiuva
 ================================
 Participación de servicios por estatus, nodo, país, cuenta y coordinador.
-Dos perspectivas:
-  • Apertura  → fecha en que se aperturó el servicio
-                (Servicios_ene2025_abr2026.xlsx, hoja de creación)
-  • Gestión   → fecha en que se gestionó el servicio, ya desglosado por
-                coordinador de cabina (Nodo_gestion_x_agente.xlsx)
+Dos perspectivas, cada una de su archivo por agente:
+  • Apertura  → Nodo_apertura_x_agente.xlsx  (coordinador que aperturó)
+  • Gestión   → Nodo_gestion_x_agente.xlsx   (coordinador que gestionó)
 
-El coordinador (quien gestionó el servicio) solo existe en la perspectiva de
-Gestión. Si más adelante llega "apertura por agente", se agrega igual.
+Ambos archivos comparten estructura (incl. la columna de fecha rotulada
+'PERIODO GESTION') y traen el coordinador de cabina, así que la vista de
+coordinador aparece en las dos pestañas.
 
 Despliegue: `streamlit run app.py` (local) o Streamlit Community Cloud.
 """
@@ -26,10 +25,9 @@ import streamlit as st
 # --------------------------------------------------------------------------- #
 # Configuración base
 # --------------------------------------------------------------------------- #
-DATA_FILE_APERTURA = "Servicios_ene2025_abr2026.xlsx"   # apertura (hoja de creación)
-SHEET_APERTURA = "Servicios por nodo creacion"
-DATA_FILE_GESTION = "Nodo_gestion_x_agente.xlsx"        # gestión, ya con coordinador
-SHEET_GESTION = 0                                       # única hoja del archivo de gestión
+DATA_FILE_APERTURA = "Nodo_apertura_x_agente.xlsx"      # apertura, con coordinador
+DATA_FILE_GESTION = "Nodo_gestion_x_agente.xlsx"        # gestión, con coordinador
+SHEET = 0                                               # única hoja en ambos archivos
 
 # Cuentas de prueba a excluir (editable). Atrapa IKATECH / PRUEBA / NO APERTURAR.
 TEST_ACCOUNT_PATTERN = re.compile(r"(?i)prueba|ikatech|no apertur")
@@ -62,12 +60,12 @@ MESES = {1: "Ene", 2: "Feb", 3: "Mar", 4: "Abr", 5: "May", 6: "Jun",
          7: "Jul", 8: "Ago", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dic"}
 
 # Dimensiones desagregables. Jerarquía real Nodo → País → Cuenta; el
-# coordinador es transversal y solo existe en la perspectiva de Gestión.
+# coordinador es transversal y existe en ambas perspectivas (apertura y gestión).
 DIMENSIONS = {
     "NODO": "Nodo",
     "SOA": "País",
     "CUENTA": "Cuenta",
-    "AGENTE": "Coordinador de cabina",  # solo Gestión
+    "AGENTE": "Coordinador de cabina",
 }
 
 
@@ -85,35 +83,32 @@ def _clean(df):
     return df
 
 
-@st.cache_data(show_spinner=False)
-def load_data(path_apertura, path_gestion):
-    """Carga apertura (archivo original) y gestión (archivo con coordinador).
+def _load_agent_file(path):
+    """Lee un archivo de servicios por agente y normaliza al esquema común.
 
-    Los dos archivos usan encabezados distintos, así que se normalizan a un
-    esquema común: NODO, SOA, IDCUENTA, CUENTA, ESTATUS, SERVICIOS, PERIODO
-    (+ COORDINADOR, NOMBRE, AGENTE, COORD_CODE en gestión).
+    Apertura y gestión traen los mismos encabezados —incluida la columna de
+    fecha rotulada 'PERIODO GESTION'— y las columnas COORDINADOR y NOMBRE.
+    Se deriva AGENTE: nombre; si no hay, el código; si no, '(Sin asignar)'.
     """
-    # Apertura — hoja de creación del archivo original
-    ap = pd.read_excel(path_apertura, sheet_name=SHEET_APERTURA)
-    ap["PERIODO"] = pd.to_datetime(ap["PERIODO DE APERTURA"])
-    ap = _clean(ap.drop(columns=["PERIODO DE APERTURA"]))
-
-    # Gestión — archivo por agente, con encabezados distintos a normalizar
-    ge = pd.read_excel(path_gestion, sheet_name=SHEET_GESTION).rename(columns={
+    df = pd.read_excel(path, sheet_name=SHEET).rename(columns={
         "ID CUENTA": "IDCUENTA", "STATUS": "ESTATUS",
         "# SERVICIOS": "SERVICIOS", "PERIODO GESTION": "PERIODO"})
-    ge["PERIODO"] = pd.to_datetime(ge["PERIODO"])
-    ge = _clean(ge)
-
-    # Etiqueta del agente: nombre; si no hay nombre, el código; si no, "(Sin asignar)"
-    nombre = ge["NOMBRE"].astype("string").str.strip()
-    code = ge["COORDINADOR"].astype("string").str.strip()
-    ge["AGENTE"] = nombre.where(nombre.notna() & (nombre != ""), code)
-    ge["AGENTE"] = ge["AGENTE"].where(ge["AGENTE"].notna() & (ge["AGENTE"] != ""),
+    df["PERIODO"] = pd.to_datetime(df["PERIODO"])
+    df = _clean(df)
+    nombre = df["NOMBRE"].astype("string").str.strip()
+    code = df["COORDINADOR"].astype("string").str.strip()
+    df["AGENTE"] = nombre.where(nombre.notna() & (nombre != ""), code)
+    df["AGENTE"] = df["AGENTE"].where(df["AGENTE"].notna() & (df["AGENTE"] != ""),
                                       "(Sin asignar)")
-    ge["COORD_CODE"] = code.fillna("—").replace("", "—")
+    df["COORD_CODE"] = code.fillna("—").replace("", "—")
+    return df
 
-    return {"Apertura": ap, "Gestión": ge}
+
+@st.cache_data(show_spinner=False)
+def load_data(path_apertura, path_gestion):
+    """Apertura y gestión, cada una de su archivo por agente."""
+    return {"Apertura": _load_agent_file(path_apertura),
+            "Gestión": _load_agent_file(path_gestion)}
 
 
 def dimension_maps(perspectives) -> dict:
@@ -318,7 +313,8 @@ def section(title, subtitle=""):
                 unsafe_allow_html=True)
 
 
-def render_perspective(df, datecol_label, definition, top_n, key, show_coord=False):
+def render_perspective(df, datecol_label, definition, top_n, key, show_coord=False,
+                       coord_noun="gestionados", coord_verb="quien gestionó"):
     st.markdown(
         f"<div class='persp'>Periodo medido por <b>{datecol_label}</b> — {definition}</div>",
         unsafe_allow_html=True)
@@ -360,10 +356,10 @@ def render_perspective(df, datecol_label, definition, top_n, key, show_coord=Fal
 
     if show_coord and "AGENTE" in df.columns:
         section(f"Top {top_n} coordinadores de cabina",
-                "por servicios gestionados · nombre visible, código en tooltip")
+                f"por servicios {coord_noun} · nombre visible, código en tooltip")
         st.plotly_chart(fig_coordinador(df, top=top_n), width="stretch",
                         config={"displayModeBar": False})
-        st.caption('Atribución: quien gestionó el servicio. Sin nombre mapeado se '
+        st.caption(f'Atribución: {coord_verb} el servicio. Sin nombre mapeado se '
                    'muestra por código; sin código → "(Sin asignar)".')
 
     with st.expander("Ver tabla de detalle (agregado filtrado)"):
@@ -456,21 +452,24 @@ def main():
 
         sel_estatus = st.multiselect("Estatus", list(STATUS_ORDER), help="Vacío = todos")
 
-        # Gestión pre-filtrada → alimenta las opciones de coordinador (en cascada)
+        # Perspectivas pre-filtradas → alimentan el filtro de coordinador, que ahora
+        # cubre apertura + gestión.
+        ap_pre = apply_filters(perspectives["Apertura"], date_range,
+                               sel_nodos, sel_paises, sel_cuentas, sel_estatus)
         g_pre = apply_filters(perspectives["Gestión"], date_range,
                               sel_nodos, sel_paises, sel_cuentas, sel_estatus)
-        coord_opts = (g_pre.groupby("AGENTE")["SERVICIOS"].sum()
+        coord_opts = (pd.concat([ap_pre[["AGENTE", "SERVICIOS"]],
+                                 g_pre[["AGENTE", "SERVICIOS"]]])
+                      .groupby("AGENTE")["SERVICIOS"].sum()
                       .sort_values(ascending=False).index.tolist())
         sel_coord = st.multiselect("Coordinador de cabina", coord_opts,
-                                   help="Solo afecta la pestaña Gestión · vacío = todos")
+                                   help="Aplica a ambas pestañas · vacío = todos")
 
         top_n = st.slider("Top N (cuentas y coordinadores)", 5, 30, 15)
 
-        st.caption("Cuentas de prueba (IKATECH / PRUEBA / NO APERTURAR) excluidas. "
-                   "El coordinador solo aplica a Gestión.")
+        st.caption("Cuentas de prueba (IKATECH / PRUEBA / NO APERTURAR) excluidas.")
 
-    apertura_df = apply_filters(perspectives["Apertura"], date_range,
-                                sel_nodos, sel_paises, sel_cuentas, sel_estatus)
+    apertura_df = ap_pre[ap_pre["AGENTE"].isin(sel_coord)] if sel_coord else ap_pre
     gestion_df = g_pre[g_pre["AGENTE"].isin(sel_coord)] if sel_coord else g_pre
 
     # ---------------- Tabs (perspectivas) ---------------- #
@@ -478,12 +477,15 @@ def main():
 
     with tab_ap:
         render_perspective(apertura_df, "fecha de apertura",
-                           "cuándo se aperturó el servicio", top_n, key="ap")
+                           "cuándo se aperturó el servicio", top_n, key="ap",
+                           show_coord=True, coord_noun="aperturados",
+                           coord_verb="quien aperturó")
 
     with tab_ge:
         render_perspective(gestion_df, "fecha de gestión",
                            "cuándo se gestionó/atendió el servicio", top_n,
-                           key="ge", show_coord=True)
+                           key="ge", show_coord=True, coord_noun="gestionados",
+                           coord_verb="quien gestionó")
 
 
 if __name__ == "__main__":
