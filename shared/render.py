@@ -53,15 +53,42 @@ _HTML_HEAD_PRE = """<!DOCTYPE html>
 
 _HTML_HEAD_POST = """</title>
 
-  <!-- React 18 (UMD) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- React 18 (UMD) — versions PINNED to exact patch so a CDN bump can't break
+       every dashboard at once. 18.3.1 is the final React 18 release. -->
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 
-  <!-- D3 v7 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <!-- D3 v7 — pinned to exact patch -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 
-  <!-- Babel Standalone (in-browser JSX transpile) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Babel Standalone (in-browser JSX transpile) — pinned to exact patch.
+       This was previously UNVERSIONED (@latest); a CDN bump to an incompatible
+       release is the most likely cause of the all-dashboards-black-screen bug. -->
+  <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+
+  <!-- Fatal-error surfacing: turn a silent black screen into a readable message.
+       Loaded as a PLAIN script (not Babel) so it is active before any transpile
+       runs and can catch Babel transpile failures via window.onerror. -->
+  <script>
+    function addiuvaShowError(msg) {
+      var el = document.getElementById('addiuva-error');
+      if (!el) return;
+      el.style.display = 'block';
+      el.textContent = '⚠ Error al cargar el dashboard\\n\\n' + msg;
+      var loader = document.querySelector('.addiuva-loader');
+      if (loader) loader.style.display = 'none';
+    }
+    window.onerror = function (message, source, lineno, colno, error) {
+      var detail = (error && error.stack) ? error.stack
+                 : (message + ' (' + (source || '') + ':' + lineno + ':' + colno + ')');
+      addiuvaShowError(detail);
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function (e) {
+      var r = e.reason;
+      addiuvaShowError('Promesa rechazada: ' + ((r && r.stack) ? r.stack : String(r)));
+    });
+  </script>
 
   <style>
     html, body {
@@ -72,6 +99,19 @@ _HTML_HEAD_POST = """</title>
       overflow-x: hidden;
     }
     #root { min-height: 100vh; }
+
+    /* Visible error overlay — hidden until addiuvaShowError() populates it. */
+    #addiuva-error {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      margin: 0; padding: 24px;
+      background: #1a0a1a;
+      color: #ff9b9b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
+      overflow: auto;
+    }
 
     /* Subtle loading state while Babel transpiles (~1-2s first paint) */
     .addiuva-loader {
@@ -92,6 +132,7 @@ _HTML_HEAD_POST = """</title>
 <body>
   <div class="addiuva-loader">Cargando dashboard…</div>
   <div id="root"></div>
+  <div id="addiuva-error"></div>
 
   <script type="text/babel" data-presets="env,react">
     const { useEffect, useMemo, useRef, useState } = React;
@@ -100,7 +141,11 @@ _HTML_HEAD_POST = """</title>
 
 _HTML_TAIL = """
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    try {
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    } catch (err) {
+      addiuvaShowError((err && err.stack) ? err.stack : String(err));
+    }
   </script>
 </body>
 </html>

@@ -4,3 +4,10 @@ __pycache__/
 
 # Streamlit local state
 .streamlit/secrets.toml
+
+# Data pipeline (NEVER commit — repo is public and auto-deploys)
+data_pipeline/.env
+data_pipeline/.venv/
+data_pipeline/data/raw/
+data_pipeline/data/
+*.csv
