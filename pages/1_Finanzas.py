@@ -15,4 +15,8 @@ render_dashboard(
     jsx_path=str(_PROJECT_ROOT / "assets" / "finanzas.jsx"),
     page_title="Finanzas · Addiuva BI",
     page_icon="💎",
+    # Real data lives in a LOCAL, gitignored JSON. Absent in production (Streamlit
+    # Cloud) -> no injection -> finanzas.jsx uses its built-in mock.
+    inject_global="__FINANZAS_DATA__",
+    inject_json_path=str(_PROJECT_ROOT / "data_pipeline" / "output" / "finanzas_payload.json"),
 )

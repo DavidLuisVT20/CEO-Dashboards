@@ -152,7 +152,32 @@ _HTML_TAIL = """
 """
 
 
-def render_dashboard(jsx_path: str, page_title: str, page_icon: str) -> None:
+def _build_data_script(inject_global: str | None, inject_json_path: str | None) -> str:
+    """
+    Build a plain <script> that sets window[inject_global] = <json> from a LOCAL
+    file. Returns "" if no global requested or the file does not exist.
+
+    The JSON file is gitignored (real financial data) and is absent in production
+    (Streamlit Cloud) — there the dashboard falls back to its built-in mock.
+    """
+    if not inject_global or not inject_json_path:
+        return ""
+    p = Path(inject_json_path)
+    if not p.exists():
+        return ""  # production / no local data -> no injection, mock fallback
+    raw = p.read_text(encoding="utf-8")
+    # Prevent a stray "</script>" inside any string from closing the tag early.
+    raw = raw.replace("</", "<\\/")
+    return f'<script>window["{inject_global}"] = {raw};</script>\n  '
+
+
+def render_dashboard(
+    jsx_path: str,
+    page_title: str,
+    page_icon: str,
+    inject_global: str | None = None,
+    inject_json_path: str | None = None,
+) -> None:
     """
     Render a React + D3 dashboard inside a Streamlit page.
 
@@ -162,6 +187,10 @@ def render_dashboard(jsx_path: str, page_title: str, page_icon: str) -> None:
         jsx_path:   absolute path to the .jsx source file.
         page_title: browser tab / page config title.
         page_icon:  emoji or icon for the browser tab.
+        inject_global:    optional JS global name to populate (e.g. "__FINANZAS_DATA__").
+        inject_json_path: optional path to a LOCAL gitignored JSON to inject. If the
+                          file is missing (production), nothing is injected and the
+                          dashboard uses its built-in mock.
     """
     # set_page_config must run before any other Streamlit call on the page.
     st.set_page_config(
@@ -191,8 +220,15 @@ def render_dashboard(jsx_path: str, page_title: str, page_icon: str) -> None:
     raw_jsx = Path(jsx_path).read_text(encoding="utf-8")
     clean_jsx = adapt_jsx_for_browser(raw_jsx)
 
+    # Inject real data (local, gitignored) as a plain global BEFORE the Babel
+    # script runs, so the JSX can read window[inject_global]. Missing file ->
+    # empty string -> the JSX falls back to its built-in mock.
+    data_script = _build_data_script(inject_global, inject_json_path)
+    babel_marker = '<script type="text/babel" data-presets="env,react">'
+    head_post = _HTML_HEAD_POST.replace(babel_marker, data_script + babel_marker, 1)
+
     dashboard_html = (
-        _HTML_HEAD_PRE + page_title + _HTML_HEAD_POST + clean_jsx + _HTML_TAIL
+        _HTML_HEAD_PRE + page_title + head_post + clean_jsx + _HTML_TAIL
     )
 
     # Height is fixed by Streamlit's iframe; internal scroll takes care of overflow

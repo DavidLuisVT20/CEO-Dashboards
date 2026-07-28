@@ -1148,7 +1148,28 @@ const DashboardHeader = ({ area, axis, okrText, variant = "expanded" }) => {
 // ==============================
 // SLICER BAR
 // ==============================
-const SlicerBar = ({ filters, setFilters }) => (
+const SlicerBar = ({ filters, setFilters, real }) => {
+  const singlePais = (filters.paises || []).length === 1;
+
+  // Choosing país: clears sociedad drill-down; multi/none país forces USD (consolidated).
+  const onPaises = (v) =>
+    setFilters((f) => ({ ...f, paises: v, sociedades: [], moneda: v.length === 1 ? f.moneda : "USD" }));
+
+  // Sociedad options come from the single selected país (no sociedad without país).
+  let socOptions = [];
+  if (real && singlePais) {
+    const p = real.paises.find((x) => x.code === filters.paises[0]);
+    if (p) socOptions = p.sociedades.map((s) => ({ value: s.id, label: s.name }));
+  }
+  // Single drill-down: keep only the last picked sociedad.
+  const onSociedades = (v) => setFilters((f) => ({ ...f, sociedades: v.slice(-1) }));
+
+  const monedaOptions = [
+    { value: "ML", label: "Local", disabled: !singlePais },
+    { value: "USD", label: "USD" },
+  ];
+
+  return (
   <div className="slicer-bar" style={{
     padding: "14px 18px",
     display: "flex", flexWrap: "wrap",
@@ -1160,8 +1181,17 @@ const SlicerBar = ({ filters, setFilters }) => (
       placeholder="Consolidado (todos)"
       options={COUNTRIES.map((c) => ({ value: c.code, label: c.label }))}
       selected={filters.paises}
-      onChange={(v) => setFilters((f) => ({ ...f, paises: v }))}
+      onChange={onPaises}
     />
+    {real && (
+      <MultiSelectDropdown
+        label="Razón social"
+        placeholder={singlePais ? "Todas (país)" : "Elige 1 país primero"}
+        options={socOptions}
+        selected={filters.sociedades}
+        onChange={onSociedades}
+      />
+    )}
     <MultiSelectDropdown
       label="Año"
       placeholder="Todos"
@@ -1176,6 +1206,14 @@ const SlicerBar = ({ filters, setFilters }) => (
       selected={filters.meses}
       onChange={(v) => setFilters((f) => ({ ...f, meses: v }))}
     />
+    {real && (
+      <SegmentedControl
+        label="Moneda"
+        value={filters.moneda}
+        options={monedaOptions}
+        onChange={(m) => setFilters((f) => ({ ...f, moneda: m }))}
+      />
+    )}
     <div style={{ flex: 1, minWidth: 12 }} />
     <div style={{ display: "flex", flexDirection: "column" }}>
       <div className="slicer-label">Presupuesto</div>
@@ -1196,7 +1234,8 @@ const SlicerBar = ({ filters, setFilters }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 // ==============================
 // ChartSlot
@@ -1439,6 +1478,174 @@ const MOCK_BAR_DATA = {
 };
 
 // ==============================
+// REAL DATA BRIDGE — injected by shared/render.py as window.__FINANZAS_DATA__.
+// Absent in production (Streamlit Cloud) -> null -> the mock above is used.
+// ==============================
+const FINANZAS_REAL =
+  (typeof window !== "undefined" && window.__FINANZAS_DATA__) ? window.__FINANZAS_DATA__ : null;
+
+const MONTH_ABBR = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+const KPI_CARD_META = {
+  AGA29: { id: "EBITDA", title: "EBITDA", okr: "Crecimiento sostenible" },
+  AGA4:  { id: "INGRESOS", title: "Total Ingresos", okr: "Crecimiento sostenible" },
+  AGA5:  { id: "SINIESTRALIDAD", title: "Siniestralidad", okr: "Control de costo directo" },
+  AGA8:  { id: "MBO", title: "Margen Bruto Operativo", okr: "Eficiencia operativa" },
+  AGA18: { id: "MNOV", title: "Margen Neto Op. & Venta", okr: "Eficiencia operativa" },
+  AGA24: { id: "MNC", title: "Margen Neto de Contribución", okr: "Eficiencia operativa" },
+  AGA25: { id: "GAV", title: "Gastos Generales (GAV)", okr: "Disciplina de gasto" },
+  AGA46: { id: "EBIT", title: "EBIT", okr: "Rentabilidad" },
+  AGA56: { id: "RESULTADO_NETO", title: "Resultado Neto", okr: "Rentabilidad" },
+};
+
+// Resolve which slice (level / key / currency) the filters point to.
+function resolveSlice(filters) {
+  const soc = (filters.sociedades && filters.sociedades.length === 1) ? filters.sociedades[0] : null;
+  const paises = filters.paises || [];
+  let nivel, paisCode = null;
+  if (soc != null) nivel = "sociedad";
+  else if (paises.length === 1) { nivel = "pais"; paisCode = paises[0]; }
+  else nivel = "consolidado";
+  const moneda = (nivel === "consolidado") ? "USD" : (filters.moneda || "USD");
+  return { nivel, paisCode, companyId: soc, moneda };
+}
+
+function sliceRecords(real, slice) {
+  return real.records
+    .filter((r) => {
+      if (r.nivel !== slice.nivel || r.moneda !== slice.moneda) return false;
+      if (slice.nivel === "pais" && r.pais_code !== slice.paisCode) return false;
+      if (slice.nivel === "sociedad" && r.company_id !== slice.companyId) return false;
+      return true;
+    })
+    .sort((a, b) => (a.anio - b.anio) || (a.mes - b.mes));
+}
+
+// Display period: honor año/mes filters; otherwise default to the latest CLOSED
+// (non-preliminary) month so the dashboard never opens on an incomplete period.
+function pickPeriod(recs, filters) {
+  const hasYear = filters.años && filters.años.length;
+  const hasMonth = filters.meses && filters.meses.length;
+  let pool = recs;
+  if (hasYear) pool = pool.filter((r) => filters.años.includes(r.anio));
+  if (hasMonth) pool = pool.filter((r) => filters.meses.includes(r.mes));
+  if (!pool.length) pool = recs;
+  if (!pool.length) return null;
+  // No explicit period chosen -> prefer the last non-preliminary record.
+  if (!hasYear && !hasMonth) {
+    const closed = pool.filter((r) => !r.preliminar);
+    if (closed.length) return closed[closed.length - 1];
+  }
+  return pool[pool.length - 1];
+}
+
+function statusForKpi(aga, value) {
+  if (value == null) return "pending";
+  if (aga === "AGA5" || aga === "AGA25") return "at-risk";        // costos/gasto: informativo
+  if (aga === "AGA29" || aga === "AGA46" || aga === "AGA56") return value >= 0 ? "on-track" : "off-track";
+  return "on-track";
+}
+
+// Build the 9 KPI cards from the real payload for the current filters.
+function buildKpisFromData(real, filters) {
+  const slice = resolveSlice(filters);
+  const recs = sliceRecords(real, slice);
+  const cur = pickPeriod(recs, filters);
+  if (!cur) return buildMockKpis();
+  const i = recs.indexOf(cur);
+  const prev = i > 0 ? recs[i - 1] : null;
+  const periodLabel = `${MONTH_ABBR[cur.mes]} ${cur.anio}`;
+  const ingresos = cur.kpis.AGA4;
+  return (real.meta.kpi_order || Object.keys(KPI_CARD_META)).map((aga) => {
+    const meta = KPI_CARD_META[aga] || { id: aga, title: aga, okr: "" };
+    const value = cur.kpis[aga];
+    const prevVal = prev ? prev.kpis[aga] : null;
+    const pct = (ingresos && value != null && aga !== "AGA4") ? value / ingresos : null;
+    return {
+      id: meta.id,
+      title: meta.title,
+      value,
+      valueUnit: cur.divisa,
+      valueFormat: "currency",
+      valuePeriodLabel: periodLabel,
+      mom: computeMoM(value, prevVal, MONTH_ABBR[cur.mes], prev ? MONTH_ABBR[prev.mes] : "—"),
+      target: pct != null
+        ? { value: null, unit: "%", periodLabel: "% s/ ingresos", formatted: `${(pct * 100).toFixed(1)}%` }
+        : { value: null, unit: cur.divisa, periodLabel: periodLabel },
+      okrLabel: meta.okr,
+      status: statusForKpi(aga, value),
+    };
+  });
+}
+
+// Small Local/USD switch (Local disabled on the multi-country consolidated view).
+const SegmentedControl = ({ label, value, options, onChange }) => (
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    {label && <div className="slicer-label">{label}</div>}
+    <div style={{ display: "flex", gap: 4, height: 34, alignItems: "center" }}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            disabled={o.disabled}
+            onClick={() => !o.disabled && onChange(o.value)}
+            style={{
+              padding: "6px 12px", borderRadius: 9,
+              fontSize: 11, fontWeight: 600, letterSpacing: "0.02em",
+              cursor: o.disabled ? "not-allowed" : "pointer",
+              color: active ? "#FFF" : tokens.colors.textTertiary,
+              background: active ? "rgba(139,70,205,0.55)" : tokens.colors.surface,
+              border: `1px solid ${active ? tokens.colors.borderHover : tokens.colors.border}`,
+              opacity: o.disabled ? 0.4 : 1, transition: tokens.transition,
+            }}
+          >{o.label}</button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// Validation badges for the current selection (per-country reconciliation + preliminary month).
+const ValidationStrip = ({ real, filters }) => {
+  if (!real) return null;
+  const slice = resolveSlice(filters);
+  const recs = sliceRecords(real, slice);
+  const cur = pickPeriod(recs, filters);
+  if (!cur) return null;
+  const isConsolidado = slice.nivel === "consolidado";
+  const reconciled = !!cur.reconciled;
+  const preliminar = !!cur.preliminar;
+  const Badge = ({ bg, fg, brd, children }) => (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
+      background: bg, color: fg, border: `1px solid ${brd}`,
+    }}>{children}</span>
+  );
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center",
+                  padding: "0 18px 6px" }}>
+      <span style={{ fontSize: 11, color: tokens.colors.textTertiary, letterSpacing: "0.04em" }}>
+        {isConsolidado ? "Consolidado multipaís" : `${cur.pais}`} · {cur.divisa} · {MONTH_ABBR[cur.mes]} {cur.anio}
+      </span>
+      {!isConsolidado && (reconciled
+        ? <Badge bg="rgba(52,211,153,0.12)" fg={tokens.colors.statusOnTrack} brd="rgba(52,211,153,0.45)">✓ Validado vs IFC</Badge>
+        : <Badge bg="rgba(255,204,109,0.10)" fg={tokens.colors.statusAtRisk} brd="rgba(255,204,109,0.40)">En validación</Badge>)}
+      {preliminar && (
+        <Badge bg="rgba(231,92,224,0.10)" fg={tokens.colors.magenta} brd="rgba(231,92,224,0.40)">
+          ⏳ Mes preliminar · devengos sin cerrar
+        </Badge>
+      )}
+      <span style={{ fontSize: 10, color: tokens.colors.textTertiary }}>
+        Regla territorial v0.1 (excl. Voccare/Ikatech) · datos reales Odoo
+      </span>
+    </div>
+  );
+};
+
+// ==============================
 // MAIN APP
 // ==============================
 export default function App() {
@@ -1447,10 +1654,14 @@ export default function App() {
   const isSmall = bp === "mobile" || bp === "tablet";
 
   const [filters, setFilters] = useState({
-    paises: [], años: [], meses: [], conPpto: true,
+    paises: [], sociedades: [], años: [], meses: [], conPpto: true, moneda: "USD",
   });
 
-  const kpiCards = useMemo(() => buildMockKpis(), []);
+  // Real data when injected; otherwise the built-in mock (production fallback).
+  const kpiCards = useMemo(
+    () => (FINANZAS_REAL ? buildKpisFromData(FINANZAS_REAL, filters) : buildMockKpis()),
+    [filters],
+  );
 
   return (
     <>
@@ -1471,7 +1682,8 @@ export default function App() {
             position: "relative",
             zIndex: 50,
           }}>
-            <SlicerBar filters={filters} setFilters={setFilters} />
+            <SlicerBar filters={filters} setFilters={setFilters} real={FINANZAS_REAL} />
+            <ValidationStrip real={FINANZAS_REAL} filters={filters} />
           </div>
         )}
         {size.width > 0 && (
