@@ -11,3 +11,19 @@ data_pipeline/.venv/
 data_pipeline/data/raw/
 data_pipeline/data/
 *.csv
+
+# Real financial data — NEVER commit (repo is public + auto-deploys).
+# The dashboard reads these locally; production falls back to the mock.
+data_pipeline/output/
+finanzas_payload.json
+*_payload.json
+
+# Documentación con cifras reales / evidencia de infraestructura — repo PÚBLICO.
+# En disco para consulta local; nunca se versionan.
+data_pipeline/ACCESO_S3_EVIDENCIA.png
+data_pipeline/PROFILE_REPORT*.md
+data_pipeline/MENSAJE_NELSON.md
+
+# Archivos xlsx (contrato del tablero, export de Odoo, derivados): exponen la
+# estructura contable del grupo en un repo público. Se leen localmente, no se versionan.
+*.xlsx

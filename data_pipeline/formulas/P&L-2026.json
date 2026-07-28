@@ -1,0 +1,429 @@
+{
+  "AGA": {
+    "concepto": "INGRESOS",
+    "nivel": 1,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "AGA1": {
+    "concepto": "Ingresos Netos",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA1IB.balance - AGA1CC.balance"
+  },
+  "AGA1IB": {
+    "concepto": "Ingresos Brutos",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|','|','|','|','|', ('account_id.code','ilike','42______'), ('account_id.code','ilike','4040____'), ('account_id.code','ilike','4000____'), ('account_id.code','ilike','4001____'), ('account_id.code','ilike','4010____'), ('account_id.code','ilike','4000800____'), ('account_id.code','in',('40000813','40001001','41002001','41002002','41002003','42000022','42000023','42000024')), ('account_id.code','not in',('40008001','40008002','40008003'))]"
+  },
+  "AGA1CC": {
+    "concepto": "Comisiones Clientes",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','=','52010001')]"
+  },
+  "AGA2": {
+    "concepto": "Otros Ingresos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','=ilike','4000800%')]"
+  },
+  "AGA3": {
+    "concepto": "Ingresos Meses Anteriores",
+    "nivel": 3,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "AGA4": {
+    "concepto": "TOTAL INGRESOS",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA1.balance + AGA2.balance"
+  },
+  "AGA6": {
+    "concepto": "% Sobre Ingreso",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "((AGA5.balance + AGA7.balance) / AGA4.balance)*100"
+  },
+  "AGA5": {
+    "concepto": "Costo directo de operación",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|', ('account_id.code','ilike','5000____'), ('account_id.code','ilike','5300____'), '!', ('account_id.code','like','50008001'), '!', ('account_id.code','like','53000003') ]"
+  },
+  "AGA7": {
+    "concepto": "Otros costos de operación",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','in',('50008001','53000003','59000001'))]"
+  },
+  "AGA8": {
+    "concepto": "MARGEN BRUTO OPERATIVO",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA4.balance - AGA5.balance - AGA7.balance"
+  },
+  "AGA9": {
+    "concepto": "% sobre Ingreso",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA8.balance / AGA4.balance)*100"
+  },
+  "AGA10": {
+    "concepto": "Costo directo de comercialización",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[78]), '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA11": {
+    "concepto": "Comisiones Brokers",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','=','52025001')]"
+  },
+  "AGA18": {
+    "concepto": "MARGEN NETO OPERATIVO & VENTA",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA8.balance - AGA10.balance - AGA11.balance"
+  },
+  "AGA13": {
+    "concepto": "% sobre Ingresos",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA18.balance/AGA4.balance)*100"
+  },
+  "AGA19": {
+    "concepto": "COSTOS INDIRECTOS DE OPERACIÓN",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA21b.balance + AGA21a.balance + AGA22a.balance + AGA222a.balance + AGA20a.balance + AGA23a.balance + AGA22a1.balance"
+  },
+  "AGA21b": {
+    "concepto": "Centro Atención Telefónica Externos",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[4376]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA21a": {
+    "concepto": "Centro atención telefónica",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[62]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA22a": {
+    "concepto": "Control de calidad",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[64]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA222a": {
+    "concepto": "Desarrollo",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[79]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA20a": {
+    "concepto": "Proveedores",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[63]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA23a": {
+    "concepto": "Servicio al cliente",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[66]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA22a1": {
+    "concepto": "Ventas",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[2653]) , '|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%') ]"
+  },
+  "AGA24": {
+    "concepto": "MARGEN NETO DE CONTRIBUCION",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA18.balance - AGA19.balance"
+  },
+  "AGA57": {
+    "concepto": "% sobre Ingresos",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA24.balance / AGA4.balance)*100"
+  },
+  "AGA25": {
+    "concepto": "GASTOS GENERALES DE ADMON Y VENTAS",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA39.balance + AGA36.balance + AGA38.balance + AGA41.balance + AGA42.balance + AGA37.balance + AGA43e.balance + AGA28.balance + AGA26.balance + AGA26a.balance + AGA41e.balance"
+  },
+  "AGA39": {
+    "concepto": "Administración y Recursos Humanos",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[70]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA36": {
+    "concepto": "Comercial/Marketing",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[65]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA38": {
+    "concepto": "Contabilidad y Finanzas",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[69]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA41": {
+    "concepto": "Corporativo",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[72]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA42": {
+    "concepto": "Finanzas Corporativo",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[73]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA37": {
+    "concepto": "Gerencia",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[67]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA43e": {
+    "concepto": "Holding",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[42110]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA28": {
+    "concepto": "Legal/Auditoria",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[68]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA26": {
+    "concepto": "Operaciones",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[61]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA26a": {
+    "concepto": "Operaciones Externas",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[4361]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA41e": {
+    "concepto": "Sistemas",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[71]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA29": {
+    "concepto": "EBITDA",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA24.balance - AGA25.balance"
+  },
+  "AGA30": {
+    "concepto": "% sobre Ingresos",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA29.balance / AGA4.balance)*100"
+  },
+  "AGA31": {
+    "concepto": "COSTOS Y GASTOS EXTRAORDINARIOS",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('analytic_account_id_ika','in',[76]),'|', ('account_id.code','=ilike','6%'), ('account_id.code','=ilike','7%')]"
+  },
+  "AGA32": {
+    "concepto": "EBITDA CON EXTRAORDINARIOS",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA29.balance - AGA31.balance"
+  },
+  "AGA35": {
+    "concepto": "% sobre Ingreso",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA32.balance / AGA4.balance)*100"
+  },
+  "AGA44": {
+    "concepto": "Depreciación",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','=ilike','65000%') ]"
+  },
+  "AGA45": {
+    "concepto": "Amortización",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','=ilike','6505000%') ]"
+  },
+  "AGA46": {
+    "concepto": "EBIT",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA32.balance - (AGA44.balance + AGA45.balance)"
+  },
+  "AGA47": {
+    "concepto": "% sobre Ingreso",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA46.balance / AGA4.balance)*100"
+  },
+  "AGA48": {
+    "concepto": "INGRESOS NO OPERACIONALES",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "AGA48A1.balance + AGA48A2.balance"
+  },
+  "AGA48A1": {
+    "concepto": "Otros Ingresos",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|', '|', ('account_id.code', '=ilike', '70000%'), ('account_id.code', '=ilike', '70001%'), ('account_id.code', '=ilike', '70002%') ]"
+  },
+  "AGA48A2": {
+    "concepto": "Utilidad de Activos",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code', '=ilike', '70003%')]"
+  },
+  "AGA49": {
+    "concepto": "GASTOS (Comisiones bancarias, gravamen y otros bancarios)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','in',('72001002','72001004','72001001','72005002')) ]"
+  },
+  "AGA50": {
+    "concepto": "GASTOS (Intereses Multas o Mora)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','=','72001003')]"
+  },
+  "AGA78": {
+    "concepto": "GASTOS (Diversos)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ '|', '|', ('analytic_account_id_ika','in',[86]), ('analytic_account_id_ika','in',[75]), ('analytic_account_id_ika','in',[74]), '|', '|','|', ('account_id.code', '=ilike', '60%'), ('account_id.code', '=ilike', '61%'), ('account_id.code', '=ilike', '62%'),('account_id.code','=','72007999'), ('account_id.code', 'not in', [ '62066021', '62066019', '62066018', '62066020', '72005006' ]), ('account_id.code', 'not like', '62066024'), ]"
+  },
+  "AGA51": {
+    "concepto": "GASTOS (No Deducibles )",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','in',('62066018','62066019')) ]"
+  },
+  "AGA52": {
+    "concepto": "GASTOS (Multas sanciones y litigios)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','=','62066021')]"
+  },
+  "AGA52A1": {
+    "concepto": "GASTOS (Pérdida de Activos)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code', 'in', ['72005003', '72005004', '72005005'])]"
+  },
+  "AGA53": {
+    "concepto": "DIFERENCIAS CAMBIARIAS Y CM",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|', '|', ('account_id.code', '=ilike', '70004%'), ('account_id.code', '=ilike', '72003%'), ('account_id.code', '=ilike', '72009%') ]"
+  },
+  "AGA54": {
+    "concepto": "IMPUESTOS",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','in',('72002001','72004001','72004002','72005001','62066024')) ]"
+  },
+  "AGA55": {
+    "concepto": "GASTOS EJERCICIOS ANTERIORES",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[ ('account_id.code','=','62066020')]"
+  },
+  "AGA56": {
+    "concepto": "RESULTADO NETO",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA46.balance + AGA48.balance) - (AGA49.balance + AGA50.balance + AGA78.balance +AGA51.balance + AGA52.balance + AGA53.balance + AGA54.balance + AGA55.balance + AGA52A1.balance)"
+  },
+  "AGA59": {
+    "concepto": "% sobre Ingresos",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "(AGA56.balance / AGA4.balance)*100"
+  }
+}

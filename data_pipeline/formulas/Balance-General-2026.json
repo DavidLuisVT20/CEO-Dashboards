@@ -1,0 +1,543 @@
+{
+  "A01": {
+    "concepto": "Activos",
+    "nivel": 0,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A02.balance + A26.balance + A22.balance"
+  },
+  "A02": {
+    "concepto": "Activo Circulante",
+    "nivel": 0,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A03.balance + A10.balance + A12.balance + A13.balance + A14.balance + A15.balance + A16.balance + A17.balance + A18.balance + A19.balance + A20.balance"
+  },
+  "A03": {
+    "concepto": "Disponible",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A04.balance + A05.balance + A06.balance + A07.balance + A08.balance + A09.balance"
+  },
+  "A04": {
+    "concepto": "Caja",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','in',['10000101' ,'10000202'])]"
+  },
+  "A05": {
+    "concepto": "Banco Disponible",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','ilike','10010___'),('account_id.code','ilike','10020___')]"
+  },
+  "A06": {
+    "concepto": "Banco Provisiones",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','=','10010801'),('account_id.code','=','10010901')]"
+  },
+  "A07": {
+    "concepto": "Bancos Provisión Diferido",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','=','10010802'),('account_id.code','=','10010902')]"
+  },
+  "A08": {
+    "concepto": "Bancos Provisión de Impuesto",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','=','10010803'),('account_id.code','=','10010903')]"
+  },
+  "A09": {
+    "concepto": "Bancos Capital de Trabajo",
+    "nivel": 5,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','=','10010804'),('account_id.code','=','10010904')]"
+  },
+  "A10": {
+    "concepto": "Valores Negociables",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','10500___')]"
+  },
+  "A12": {
+    "concepto": "Cuentas Por Cobrar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','ilike','11000___'),('account_id.code','ilike','11030___')]"
+  },
+  "A13": {
+    "concepto": "Otros Cuentas Por Cobrar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','11530___')]"
+  },
+  "A14": {
+    "concepto": "Provisiones por Cobrar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','11010___')]"
+  },
+  "A15": {
+    "concepto": "Deudores Varios",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|','|','|','|','|',('account_id.code','ilike','11500___'),('account_id.code','ilike','11510___'),('account_id.code','ilike','11520___'),('account_id.code','ilike','12000___'),('account_id.code','ilike','12010___'),('account_id.code','ilike','12020___'),('account_id.code','ilike','12030___'),('account_id.code','ilike','12500___')]"
+  },
+  "A16": {
+    "concepto": "Cuentas Por Cobrar Empresas Relacionadas",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','12510___')]"
+  },
+  "A17": {
+    "concepto": "Impuesto Por Recuperar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','11060___')]"
+  },
+  "A18": {
+    "concepto": "Pagos Anticipados",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|','|','|','|','|','|','|','|','|',('account_id.code','ilike','12040___'),('account_id.code','ilike','12050___'),('account_id.code','ilike','13000___'),('account_id.code','ilike','13010___'),('account_id.code','ilike','13020___'),('account_id.code','ilike','13030___'),('account_id.code','ilike','13500___'),('account_id.code','ilike','13510___'),('account_id.code','ilike','13520___'),('account_id.code','ilike','19010___'),('account_id.code','ilike','19090___'),('account_id.code','ilike','12060___')]"
+  },
+  "A19": {
+    "concepto": "Impuestos Diferidos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','=','13050001')]"
+  },
+  "A20": {
+    "concepto": "Otros Activos Circulantes",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|','|','|','|','|',('account_id.code','=','13040001'),('account_id.code','ilike','11020___'),('account_id.code','ilike','11040___'),('account_id.code','ilike','11050___'),('account_id.code','ilike','11550___'),('account_id.code','ilike','11550___'),('account_id.code','ilike','13810___'),('account_id.code','ilike','14000___')]"
+  },
+  "A26": {
+    "concepto": "Otros Activos",
+    "nivel": 0,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A27.balance + A28.balance + A29.balance + A30.balance + A31.balance + A32.balance + A33.balance + A34.balance + A35.balance"
+  },
+  "A27": {
+    "concepto": "Inversiones",
+    "nivel": 1,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','17570___')]"
+  },
+  "A28": {
+    "concepto": "Cuentas Por Cobrar a Largo Plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','16500___')]"
+  },
+  "A29": {
+    "concepto": "Deudores Largo Plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|',('account_id.code','=','16510001'),('account_id.code','=','17000001')]"
+  },
+  "A30": {
+    "concepto": "Cuentas Por Cobrar Empresas Relacionadas a Largo Plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','ilike','17010___')]"
+  },
+  "A31": {
+    "concepto": "Intangibles",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|',('account_id.code','=','17510001'),('account_id.code','=','17560001'),('account_id.code','=','17590001'),('account_id.code','=','17590003')]"
+  },
+  "A32": {
+    "concepto": "Gastos Preoperativos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[['account_id.code','=','17550001']]"
+  },
+  "A33": {
+    "concepto": "Amortización Acumulada",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|',('account_id.code','=','17510005'),('account_id.code','=','17550005'),('account_id.code','=','17560005'),('account_id.code','=','17590005')]"
+  },
+  "A34": {
+    "concepto": "Impuestos Diferidos a Largo Plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[['account_id.code','=','16530001']]"
+  },
+  "A35": {
+    "concepto": "Otros",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|',('account_id.code','=','16520001'),('account_id.code','=','16540001'),('account_id.code','=','17580001')]"
+  },
+  "A22": {
+    "concepto": "Activo Fijo",
+    "nivel": 0,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A23.balance + A24.balance"
+  },
+  "A23": {
+    "concepto": "Muebles, Maquinaria Y Equipo(Transporte/Cómputo/Comunicaciones)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code', 'in', [ '14500001', '15000001', '15010001', '15020001', '15030001', '15100001', '15500001', '15520001', '15530001', '15540001', '15550001', '16000001', '16000002', '16000003', '16000004', '16000005', '15030999', '15500999', '15520999', '15530999' ])]"
+  },
+  "A24": {
+    "concepto": "Depreciación Acumulada",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "['|','|','|','|','|','|','|','|',('account_id.code','=','15010005'),('account_id.code','=','15020005'),('account_id.code','=','15030005'),('account_id.code','=','15100005'),('account_id.code','=','15500005'),('account_id.code','=','15520005'),('account_id.code','=','15530005'),('account_id.code','=','15540005'),('account_id.code','=','15550005')]"
+  },
+  "A38": {
+    "concepto": "PASIVOS Y PATRIMONIO",
+    "nivel": 0,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "A39": {
+    "concepto": "Pasivo Circulante",
+    "nivel": 0,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "A40": {
+    "concepto": "Sobregiro",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','20020399']]"
+  },
+  "A41": {
+    "concepto": "Obligaciones Bancarias CP",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[ '&', '|', ('account_id.code', 'ilike', '20020___'), ('account_id.code', 'ilike', '20030___'), ('account_id.code', '!=', '20020399') ]"
+  },
+  "A42": {
+    "concepto": "Cuentas por Pagar Proveedores",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','20000___')]"
+  },
+  "A43": {
+    "concepto": "Cuentas por Pagar Acreedores",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','20010___')]"
+  },
+  "A44": {
+    "concepto": "Cuentas Por Pagar Empresas Vinculadas/Relacionadas",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','22510___')]"
+  },
+  "A45": {
+    "concepto": "Cuentas Por Pagar Accionistas",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','22500001']]"
+  },
+  "A46": {
+    "concepto": "Otras Cuentas Por Pagar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|',('account_id.code','ilike','20040___'),('account_id.code','ilike','20060___'),('account_id.code','ilike','20090___')]"
+  },
+  "A47": {
+    "concepto": "Provisiones",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|','|','|',('account_id.code','ilike','21000___'),('account_id.code','ilike','21010___'),('account_id.code','ilike','21020___'),('account_id.code','ilike','21030___'),('account_id.code','ilike','21040___')]"
+  },
+  "A48": {
+    "concepto": "Remuneraciones Por Pagar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|','|','|','|',('account_id.code','ilike','20500___'),('account_id.code','ilike','20550___'),('account_id.code','ilike','20560___'),('account_id.code','ilike','20570___'),('account_id.code','ilike','20580___'),('account_id.code','ilike','20590___')]"
+  },
+  "A49": {
+    "concepto": "Provisiones Corp. Por Pagar",
+    "nivel": 3,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "A50": {
+    "concepto": "Aportaciones Por Pagar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','23000___')]"
+  },
+  "A52": {
+    "concepto": "Impuestos Por Pagar",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|','|','|','|','|','|',('account_id.code','ilike','20050___'),('account_id.code','ilike','23500___'),('account_id.code','ilike','23520___'),('account_id.code','ilike','23530___'),('account_id.code','ilike','24000___'),('account_id.code','ilike','24010___'),('account_id.code','ilike','24020___'),('account_id.code','ilike','24005___')]"
+  },
+  "A53": {
+    "concepto": "Impuestos Diferidos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|',('account_id.code','ilike','23510___'),('account_id.code','ilike','23540___')]"
+  },
+  "A54": {
+    "concepto": "TOTAL PASIVO CIRCULANTE",
+    "nivel": 0,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A40.balance + A41.balance + A42.balance + A43.balance + A44.balance + A45.balance + A46.balance + A47.balance + A48.balance + A50.balance + A52.balance + A53.balance"
+  },
+  "A55": {
+    "concepto": "PASIVO A LARGO PLAZO",
+    "nivel": 1,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "A56": {
+    "concepto": "Obligaciones a Largo Plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','24520___')]"
+  },
+  "A57": {
+    "concepto": "Cuentas Por Pagar a Empresas Vinculadas/Relacionadas",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','27010___')]"
+  },
+  "A58": {
+    "concepto": "Cuentas Por Pagar Proveedores",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[['account_id.code','=','24500001']]"
+  },
+  "A59": {
+    "concepto": "Cuentas Por Pagar Acreedores",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','24510001']]"
+  },
+  "A59A": {
+    "concepto": "Provisiones a largo plazo",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code', 'in', [ '25000001', '25010001', '25010002', '25010003', '25020001', '25020002', '25030001', '25030002', '25040001' ])]"
+  },
+  "A60": {
+    "concepto": "Impuestos Diferidos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','24540001']]"
+  },
+  "A61": {
+    "concepto": "Cuentas Por Pagar Accionistas",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','27000001']]"
+  },
+  "A62": {
+    "concepto": "Otras Cuentas Por Pagar LP",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','24530___')]"
+  },
+  "A63": {
+    "concepto": "Otros Pasivos",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|',('account_id.code','ilike','23810___'),('account_id.code','ilike','24560___')]"
+  },
+  "A64": {
+    "concepto": "TOTAL PASIVO A LARGO PLAZO",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A56.balance + A57.balance + A58.balance + A59.balance + A60.balance + A61.balance + A62.balance + A63.balance"
+  },
+  "A65": {
+    "concepto": "PATRIMONIO",
+    "nivel": 0,
+    "motor": null,
+    "subformula": null,
+    "formula": null
+  },
+  "A66": {
+    "concepto": "Capital",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','30000001']]"
+  },
+  "A67": {
+    "concepto": "Revalorización De Capital",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "['|','|','|',('account_id.code','ilike','30000002'),('account_id.code','ilike','30070001'),('account_id.code','ilike','30071001'),('account_id.code','ilike','30072001')]"
+  },
+  "A68": {
+    "concepto": "Reserva Legal",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[('account_id.code','ilike','30010___')]"
+  },
+  "A69": {
+    "concepto": "Aportaciones Para Aumentos De Capital",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','30020001']]"
+  },
+  "A70": {
+    "concepto": "Capital Por Suscribir",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','30020002']]"
+  },
+  "A71": {
+    "concepto": "Dividendos Pagados",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','30060001']]"
+  },
+  "RE0001": {
+    "concepto": "Resultados del Ejercicio",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A72.balance + PL1001.balance"
+  },
+  "A72": {
+    "concepto": "Resultados Del Ejercicio",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','=','30050001']]"
+  },
+  "PL1001": {
+    "concepto": "Resultado Neto P&L",
+    "nivel": 3,
+    "motor": "Agregar otras fórmulas",
+    "subformula": "cross_report",
+    "formula": "AGA56.balance"
+  },
+  "A73": {
+    "concepto": "Resultados de Ejercicios de años anteriores",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "-sum",
+    "formula": "[['account_id.code','in',('30040001','30040002')]]"
+  },
+  "A74": {
+    "concepto": "Resultados Ejercicio Financiero/Acumulado",
+    "nivel": 3,
+    "expressions": [
+      {
+        "label": "balance",
+        "motor": "Agregar otras fórmulas",
+        "subformula": null,
+        "formula": "A74.allocated_earnings + A74.balance_domain - A74.balance_report"
+      },
+      {
+        "label": "allocated_earnings",
+        "motor": "Dominio de Odoo",
+        "subformula": "-sum",
+        "formula": "[('account_id.account_type', '=', 'equity_unaffected')]"
+      },
+      {
+        "label": "balance_domain",
+        "motor": "Dominio de Odoo",
+        "subformula": "-sum",
+        "formula": "[('account_id.account_type', 'in', ('income', 'income_other', 'expense_direct_cost', 'expense', 'expense_depreciation'))]"
+      },
+      {
+        "label": "balance_report",
+        "motor": "Agregar otras fórmulas",
+        "subformula": "cross_report",
+        "formula": "CURR_YEAR_EARNINGS.balance"
+      }
+    ]
+  },
+  "A74C": {
+    "concepto": "Resultado Acumulado",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A73.balance + A74.balance"
+  },
+  "A75": {
+    "concepto": "TOTAL PATRIMONIO",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A66.balance + A67.balance + A68.balance + A69.balance + A70.balance + A71.balance + A74C.balance + RE0001.balance"
+  },
+  "A76": {
+    "concepto": "TOTAL PASIVOS Y PATRIMONIO",
+    "nivel": 1,
+    "motor": "Agregar otras fórmulas",
+    "subformula": null,
+    "formula": "A54.balance + A64.balance + A75.balance"
+  }
+}
