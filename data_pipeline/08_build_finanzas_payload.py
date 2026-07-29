@@ -102,15 +102,23 @@ def usd_kpis(con, engine):
     # balance_usd: si hay tasa_cambio, balance*tasa; si la divisa YA es USD (paises
     # dolarizados con tasa_cambio NULL: Ecuador, El Salvador, EEUU), balance tal cual;
     # si no es USD y no hay tasa, NULL (no convertible -> excluida del USD por sum()).
+    # FIX fan-out analitico (ver 10_kpis_territorial.py): colapsar a una fila por aml_id
+    # ANTES de convertir a USD y agregar. Cada aml_id trae una analitica, un balance y una
+    # tasa_cambio, asi que DISTINCT por aml_id es exacto. Sin esto, balance*tasa se infla
+    # por el fan-out igual que la cifra en ML.
     df = con.execute(f"""
         SELECT pais, company_id, anio, mes, codigo_cuenta, id_cuenta_analitica,
                account_type AS tipo_cuenta,
                sum(CASE WHEN tasa_cambio IS NOT NULL THEN balance * tasa_cambio
                         WHEN divisa = 'USD' THEN balance
                         ELSE NULL END) AS balance
-        FROM read_parquet('{GLOB}', hive_partitioning=1)
-        WHERE anio >= 2022
-          AND lower(company_name) NOT LIKE '%voccare%' AND lower(company_name) NOT LIKE '%ikatech%'
+        FROM (
+            SELECT DISTINCT aml_id, pais, company_id, anio, mes, codigo_cuenta,
+                   id_cuenta_analitica, account_type, balance, tasa_cambio, divisa
+            FROM read_parquet('{GLOB}', hive_partitioning=1)
+            WHERE anio >= 2022
+              AND lower(company_name) NOT LIKE '%voccare%' AND lower(company_name) NOT LIKE '%ikatech%'
+        )
         GROUP BY pais, company_id, anio, mes, codigo_cuenta, id_cuenta_analitica, account_type
     """).fetch_df()
     pais_map = (df[["company_id", "pais"]].drop_duplicates().set_index("company_id")["pais"].to_dict())

@@ -106,11 +106,21 @@ def main() -> None:
 
     # ---- TAREA 2: motor territorial ----
     print(f"\n[INFO] Pre-agregando TERRITORIAL (excluye company_id in [{excl}]), anio>=2022...")
+    # FIX fan-out analitico: el parquet repite cada linea contable (aml_id) una vez
+    # por combinacion de distribucion/etiqueta, con el balance COMPLETO en cada copia.
+    # Sumar crudo infla toda cifra por el factor de fan-out (var. por sociedad, 7x-65x).
+    # Cada aml_id tiene UNA sola analitica y UN solo balance (verificado: 0/139k con >1),
+    # asi que colapsar a una fila por aml_id (DISTINCT) es exacto y preserva la analitica
+    # que usan AGA25 y los centros de costo. No se prorratea: no hay split que repartir.
     df = con.execute(f"""
         SELECT pais, company_id, anio, mes, codigo_cuenta, id_cuenta_analitica,
                account_type AS tipo_cuenta, sum(balance) AS balance
-        FROM {rel}
-        WHERE anio >= 2022 AND company_id NOT IN ({excl})
+        FROM (
+            SELECT DISTINCT aml_id, pais, company_id, anio, mes, codigo_cuenta,
+                   id_cuenta_analitica, account_type, balance
+            FROM {rel}
+            WHERE anio >= 2022 AND company_id NOT IN ({excl})
+        )
         GROUP BY pais, company_id, anio, mes, codigo_cuenta, id_cuenta_analitica, account_type
     """).fetch_df()
     print(f"[INFO] Tabla compacta territorial: {len(df):,} filas")
