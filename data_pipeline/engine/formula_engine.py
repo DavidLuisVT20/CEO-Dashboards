@@ -134,6 +134,7 @@ class FormulaEngine:
         self,
         df: pd.DataFrame,
         groupby_cols: list[str] | None = None,
+        seed_results: dict[str, pd.Series] | None = None,
     ) -> tuple[dict[str, pd.Series], dict[str, str]]:
         """
         Evalua todos los nodos en orden topologico.
@@ -149,7 +150,13 @@ class FormulaEngine:
         universe_idx = self._build_universe_idx(df, groupby_cols)
         zero_series = pd.Series(0.0, index=universe_idx, dtype="float64")
 
+        # Cross-report: siembra resultados externos precalculados (p.ej. PL1001 del
+        # Balance = AGA56 del P&L), reindexados al universo de este slice antes del
+        # topo-sort para que los nodos "Agregar otras formulas" los resuelvan.
         results: dict[str, pd.Series] = {}
+        if seed_results:
+            for _code, _s in seed_results.items():
+                results[_code] = _s.reindex(universe_idx).fillna(0.0)
         errors: dict[str, str] = {}
 
         for code in self.topo_order:

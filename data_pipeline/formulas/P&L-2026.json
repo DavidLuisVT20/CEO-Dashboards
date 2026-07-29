@@ -18,7 +18,7 @@
     "nivel": 5,
     "motor": "Dominio de Odoo",
     "subformula": "-sum",
-    "formula": "['|','|','|','|','|','|', ('account_id.code','ilike','42______'), ('account_id.code','ilike','4040____'), ('account_id.code','ilike','4000____'), ('account_id.code','ilike','4001____'), ('account_id.code','ilike','4010____'), ('account_id.code','ilike','4000800____'), ('account_id.code','in',('40000813','40001001','41002001','41002002','41002003','42000022','42000023','42000024')), ('account_id.code','not in',('40008001','40008002','40008003'))]"
+    "formula": "['|','|','|','|','|', ('account_id.code','ilike','42______'), ('account_id.code','ilike','4040____'), ('account_id.code','ilike','4000____'), ('account_id.code','ilike','4001____'), ('account_id.code','ilike','4000800____'), ('account_id.code','in',('40000813','40001001','41002001','41002002','41002003','42000022','42000023','42000024')), ('account_id.code','not in',('40008001','40008002','40008003'))]"
   },
   "AGA1CC": {
     "concepto": "Comisiones Clientes",
@@ -368,7 +368,7 @@
     "nivel": 3,
     "motor": "Dominio de Odoo",
     "subformula": "sum",
-    "formula": "[ '|', '|', ('analytic_account_id_ika','in',[86]), ('analytic_account_id_ika','in',[75]), ('analytic_account_id_ika','in',[74]), '|', '|','|', ('account_id.code', '=ilike', '60%'), ('account_id.code', '=ilike', '61%'), ('account_id.code', '=ilike', '62%'),('account_id.code','=','72007999'), ('account_id.code', 'not in', [ '62066021', '62066019', '62066018', '62066020', '72005006' ]), ('account_id.code', 'not like', '62066024'), ]"
+    "formula": "[ '|', '|', ('analytic_account_id_ika','in',[86]), ('analytic_account_id_ika','in',[75]), ('analytic_account_id_ika','in',[74]), '|', '|', ('account_id.code', '=ilike', '60%'), ('account_id.code', '=ilike', '61%'), ('account_id.code', '=ilike', '62%'), ('account_id.code', 'not in', [ '62066021', '62066019', '62066018', '62066020', '72005006' ]), ('account_id.code', 'not like', '62066024'), ]"
   },
   "AGA51": {
     "concepto": "GASTOS (No Deducibles )",
@@ -404,6 +404,13 @@
     "motor": "Dominio de Odoo",
     "subformula": "sum",
     "formula": "[ ('account_id.code','in',('72002001','72004001','72004002','72005001','62066024')) ]"
+  },
+  "AGA54A1": {
+    "concepto": "Impuesto Sobre Renta (ISR)",
+    "nivel": 3,
+    "motor": "Dominio de Odoo",
+    "subformula": "sum",
+    "formula": "[('account_id.code','=','72004001')]"
   },
   "AGA55": {
     "concepto": "GASTOS EJERCICIOS ANTERIORES",

@@ -200,7 +200,7 @@
     "nivel": 3,
     "motor": "Dominio de Odoo",
     "subformula": "sum",
-    "formula": "['|','|',('account_id.code','=','16520001'),('account_id.code','=','16540001'),('account_id.code','=','17580001')]"
+    "formula": "['|','|',('account_id.code','=','16520001'),('account_id.code','=','17060001'),('account_id.code','=','19090001')]"
   },
   "A22": {
     "concepto": "Activo Fijo",
