@@ -1,0 +1,1222 @@
+{
+  "meta": {
+    "source": "Componentes_Tablero_Finanzas_Addiuva_BR-CEO-KPI-001.xlsx",
+    "sheet": "Componentes Addiuva",
+    "scope": "Addiuva · sociedades territoriales (excl. Voccare/Ikatech)",
+    "note": "Nombres de columna LITERALES de las vistas de Nelson, typos incluidos. Regla de admisión: componente sin su columna -> vacío, nunca 0.",
+    "pl_extract": "calcs_202607271131.csv",
+    "pl_extract_cols": [
+      "amortizacion",
+      "anio",
+      "centro_atencion_telefonico",
+      "centro_atencion_telefonico_externo",
+      "comisiones_brokers",
+      "comisiones_clientes",
+      "control_de_calidad",
+      "costo_directo_de_comercializacion",
+      "costo_directo_de_operaciones",
+      "costo_indirecto_operacion",
+      "depreciacion",
+      "desarrollo",
+      "divisa",
+      "ebit",
+      "ebitda",
+      "ebitda_con_extraorinarios",
+      "gasto_administracion_y_recursos_humano",
+      "gasto_comercial_marketing",
+      "gasto_contabilidad_y_finanzas",
+      "gasto_corporativo",
+      "gasto_finanzas_corporativo",
+      "gasto_generales_de_adminstracion_y_ventas",
+      "gasto_gerencia",
+      "gasto_holding",
+      "gasto_legal_auditoria",
+      "gasto_operaciones",
+      "gasto_operaciones_externas",
+      "gasto_sistemas",
+      "ingreso_brutos",
+      "ingreso_netos",
+      "margen_bruto_operativo",
+      "margen_neto_de_contribucion",
+      "margen_neto_operativo_y_venta",
+      "mes",
+      "otros_costos_de_operaciones",
+      "otros_ingresos",
+      "proveedores",
+      "resultado_neto",
+      "servicio_al_cliente",
+      "total_gastos",
+      "total_ingreso",
+      "ventas"
+    ],
+    "footnotes": [
+      "Defectos abiertos en el reporte de Addiuva — corregir antes de poblar:   1) A54 excluye A49 del total   ·   2) A64 excluye A59A (Provisiones a largo plazo)   ·   3) A58 usa sum y A59 usa -sum, siendo cuentas contiguas 24500001 / 24510001 dentro del mismo total   ·   4) Sin fórmula: AGA3 (Ingresos Meses Anteriores) y A49 (Provisiones Corp. Por Pagar)",
+      "Abierto de negocio:   etiqueta del componente 1 (Territorial)   ·   etiqueta del componente 3 (Siniestralidad vs. Costos Directos de Operación)   ·   confirmación de retiro del componente 8 (Eficiencia Fiscal)   ·   heurístico de clasificación territorial por company_name, marcado PROVISIONAL en 10_kpis_territorial.py"
+    ]
+  },
+  "components": [
+    {
+      "num": 1,
+      "name": "EBITDA Consolidado · Territorial",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "AGA29",
+          "concepto": "EBITDA",
+          "view": "pl",
+          "columns": [
+            "ebitda"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "ebitda": true
+          }
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "name": "Total Ingresos",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "AGA4",
+          "concepto": "Total Ingresos",
+          "view": "pl",
+          "columns": [
+            "total_ingreso"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "total_ingreso": true
+          }
+        },
+        {
+          "code": "AGA1",
+          "concepto": "Ingresos Netos",
+          "view": "pl",
+          "columns": [
+            "ingreso_netos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "ingreso_netos": true
+          }
+        },
+        {
+          "code": "AGA1IB",
+          "concepto": "Ingresos Brutos",
+          "view": "pl",
+          "columns": [
+            "ingreso_brutos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "ingreso_brutos": true
+          }
+        },
+        {
+          "code": "AGA1CC",
+          "concepto": "Comisiones Clientes",
+          "view": "pl",
+          "columns": [
+            "comisiones_clientes"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "comisiones_clientes": true
+          }
+        },
+        {
+          "code": "AGA2",
+          "concepto": "Otros Ingresos",
+          "view": "pl",
+          "columns": [
+            "otros_ingresos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "otros_ingresos": true
+          }
+        },
+        {
+          "code": "AGA3",
+          "concepto": "Ingresos Meses Anteriores",
+          "view": "pl",
+          "columns": [],
+          "missing": true,
+          "derive": null,
+          "estado": "Pendiente",
+          "present_in_extract": null
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "name": "Costos Directos de Operación",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "AGA5",
+          "concepto": "Costo directo de operación",
+          "view": "pl",
+          "columns": [
+            "costo_directo_de_operaciones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "costo_directo_de_operaciones": true
+          }
+        },
+        {
+          "code": "AGA7",
+          "concepto": "Otros costos de operación",
+          "view": "pl",
+          "columns": [
+            "otros_costos_de_operaciones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Sin componente",
+          "present_in_extract": {
+            "otros_costos_de_operaciones": true
+          }
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "name": "Gastos Generales G&A",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "AGA25",
+          "concepto": "Gastos Generales de Admón y Ventas",
+          "view": "pl",
+          "columns": [
+            "gasto_generales_de_adminstracion_y_ventas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "gasto_generales_de_adminstracion_y_ventas": true
+          }
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "name": "Balance General",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "A76",
+          "concepto": "Total Pasivos y Patrimonio",
+          "view": "bg",
+          "columns": [
+            "a76_total_pasivos_y_patrimonio"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A54",
+          "concepto": "Total Pasivo Circulante",
+          "view": "bg",
+          "columns": [
+            "a54_total_pasivo_circulante"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Defecto 1",
+          "present_in_extract": null
+        },
+        {
+          "code": "A64",
+          "concepto": "Total Pasivo a Largo Plazo",
+          "view": "bg",
+          "columns": [
+            "a64_total_pasivo_a_largo_plazo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Defecto 2",
+          "present_in_extract": null
+        },
+        {
+          "code": "A75",
+          "concepto": "Total Patrimonio",
+          "view": "bg",
+          "columns": [
+            "a75_total_patrimonio"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A01",
+          "concepto": "Activos",
+          "view": "bg",
+          "columns": [
+            "a01_activos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Validación",
+          "present_in_extract": null
+        }
+      ]
+    },
+    {
+      "num": 6,
+      "name": "Incremental Free Cash Flow",
+      "estado": "Fórmula lista",
+      "items": [
+        {
+          "code": "AGA56",
+          "concepto": "Resultado Neto",
+          "view": "pl",
+          "columns": [
+            "resultado_neto"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "resultado_neto": true
+          }
+        },
+        {
+          "code": "AGA44",
+          "concepto": "Depreciación",
+          "view": "pl",
+          "columns": [
+            "depreciacion"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "depreciacion": true
+          }
+        },
+        {
+          "code": "AGA45",
+          "concepto": "Amortización",
+          "view": "pl",
+          "columns": [
+            "amortizacion"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "amortizacion": true
+          }
+        },
+        {
+          "code": "A09",
+          "concepto": "Bancos Capital de Trabajo",
+          "view": "bg",
+          "columns": [
+            "a09_bancos_capital_de_trabajo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A12",
+          "concepto": "Cuentas Por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a12_cuentas_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A13",
+          "concepto": "Otros Cuentas Por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a13_otros_cuentas_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A14",
+          "concepto": "Provisiones por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a14_provisiones_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A15",
+          "concepto": "Deudores Varios",
+          "view": "bg",
+          "columns": [
+            "a15_deudores_varios"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A16",
+          "concepto": "CxC Empresas Relacionadas",
+          "view": "bg",
+          "columns": [
+            "a16_cuentas_por_cobrar_empresas_relacionadas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A17",
+          "concepto": "Impuesto Por Recuperar",
+          "view": "bg",
+          "columns": [
+            "a17_impuesto_por_recuperar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A18",
+          "concepto": "Pagos Anticipados",
+          "view": "bg",
+          "columns": [
+            "a18_pagos_anticipados"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A20",
+          "concepto": "Otros Activos Circulantes",
+          "view": "bg",
+          "columns": [
+            "a20_otros_activos_circulantes"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A42",
+          "concepto": "Cuentas por Pagar Proveedores",
+          "view": "bg",
+          "columns": [
+            "a42_cuentas_por_pagar_proveedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A43",
+          "concepto": "Cuentas por Pagar Acreedores",
+          "view": "bg",
+          "columns": [
+            "a43_cuentas_por_pagar_acreedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A44",
+          "concepto": "CxP Empresas Vinculadas",
+          "view": "bg",
+          "columns": [
+            "a44_cuentas_por_pagar_empresas_vinculadas_relacionadas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A45",
+          "concepto": "CxP Accionistas",
+          "view": "bg",
+          "columns": [
+            "a45_cuentas_por_pagar_accionistas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A46",
+          "concepto": "Otras Cuentas Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a46_otras_cuentas_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A47",
+          "concepto": "Provisiones",
+          "view": "bg",
+          "columns": [
+            "a47_provisiones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A48",
+          "concepto": "Remuneraciones Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a48_remuneraciones_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A50",
+          "concepto": "Aportaciones Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a50_aportaciones_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A52",
+          "concepto": "Impuestos Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a52_impuestos_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A49",
+          "concepto": "Provisiones Corp. Por Pagar",
+          "view": "bg",
+          "columns": [],
+          "missing": true,
+          "derive": null,
+          "estado": "Pendiente",
+          "present_in_extract": null
+        },
+        {
+          "code": "A23",
+          "concepto": "Muebles, Maquinaria y Equipo",
+          "view": "bg",
+          "columns": [
+            "a23_muebles_maquinaria_y_equipo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A31",
+          "concepto": "Intangibles",
+          "view": "bg",
+          "columns": [
+            "a31_intangibles"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A32",
+          "concepto": "Gastos Preoperativos",
+          "view": "bg",
+          "columns": [
+            "a32_gastos_preoperativos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A03 / A09 / A10",
+          "concepto": "Caja y equivalentes",
+          "view": "bg",
+          "columns": [
+            "a03_disponible",
+            "a09_bancos_capital_de_trabajo",
+            "a10_valores_negociables"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Validación",
+          "present_in_extract": null
+        },
+        {
+          "code": "A71",
+          "concepto": "Dividendos Pagados",
+          "view": "bg",
+          "columns": [
+            "a71_dividendos_pagados"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "AGA48A2 / AGA52A1",
+          "concepto": "Bajas de activo fijo",
+          "view": "pl",
+          "columns": [],
+          "missing": true,
+          "derive": null,
+          "estado": "Fase 1",
+          "present_in_extract": null
+        }
+      ]
+    },
+    {
+      "num": 7,
+      "name": "ROIC",
+      "estado": "Fórmula lista",
+      "items": [
+        {
+          "code": "AGA46",
+          "concepto": "EBIT",
+          "view": "pl",
+          "columns": [
+            "ebit"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "ebit": true
+          }
+        },
+        {
+          "code": "AGA54",
+          "concepto": "Impuestos",
+          "view": "pl",
+          "columns": [
+            "impuestos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "impuestos": false
+          }
+        },
+        {
+          "code": "AGA56",
+          "concepto": "Resultado Neto",
+          "view": "pl",
+          "columns": [
+            "resultado_neto"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "resultado_neto": true
+          }
+        },
+        {
+          "code": "A09",
+          "concepto": "Bancos Capital de Trabajo",
+          "view": "bg",
+          "columns": [
+            "a09_bancos_capital_de_trabajo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A12",
+          "concepto": "Cuentas Por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a12_cuentas_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A13",
+          "concepto": "Otros Cuentas Por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a13_otros_cuentas_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A14",
+          "concepto": "Provisiones por Cobrar",
+          "view": "bg",
+          "columns": [
+            "a14_provisiones_por_cobrar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A15",
+          "concepto": "Deudores Varios",
+          "view": "bg",
+          "columns": [
+            "a15_deudores_varios"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A16",
+          "concepto": "CxC Empresas Relacionadas",
+          "view": "bg",
+          "columns": [
+            "a16_cuentas_por_cobrar_empresas_relacionadas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A17",
+          "concepto": "Impuesto Por Recuperar",
+          "view": "bg",
+          "columns": [
+            "a17_impuesto_por_recuperar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A18",
+          "concepto": "Pagos Anticipados",
+          "view": "bg",
+          "columns": [
+            "a18_pagos_anticipados"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A20",
+          "concepto": "Otros Activos Circulantes",
+          "view": "bg",
+          "columns": [
+            "a20_otros_activos_circulantes"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A42",
+          "concepto": "Cuentas por Pagar Proveedores",
+          "view": "bg",
+          "columns": [
+            "a42_cuentas_por_pagar_proveedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A43",
+          "concepto": "Cuentas por Pagar Acreedores",
+          "view": "bg",
+          "columns": [
+            "a43_cuentas_por_pagar_acreedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A44",
+          "concepto": "CxP Empresas Vinculadas",
+          "view": "bg",
+          "columns": [
+            "a44_cuentas_por_pagar_empresas_vinculadas_relacionadas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A45",
+          "concepto": "CxP Accionistas",
+          "view": "bg",
+          "columns": [
+            "a45_cuentas_por_pagar_accionistas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A46",
+          "concepto": "Otras Cuentas Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a46_otras_cuentas_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A47",
+          "concepto": "Provisiones",
+          "view": "bg",
+          "columns": [
+            "a47_provisiones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A48",
+          "concepto": "Remuneraciones Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a48_remuneraciones_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A50",
+          "concepto": "Aportaciones Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a50_aportaciones_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A52",
+          "concepto": "Impuestos Por Pagar",
+          "view": "bg",
+          "columns": [
+            "a52_impuestos_por_pagar"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A22",
+          "concepto": "Activo Fijo",
+          "view": "bg",
+          "columns": [
+            "a22_activo_fijo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A26",
+          "concepto": "Otros Activos",
+          "view": "bg",
+          "columns": [
+            "a26_otros_activos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A27",
+          "concepto": "Inversiones",
+          "view": "bg",
+          "columns": [
+            "a27_inversiones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A34",
+          "concepto": "Impuestos Diferidos a Largo Plazo",
+          "view": "bg",
+          "columns": [
+            "a34_impuestos_diferidos_a_largo_plazo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A57",
+          "concepto": "CxP Empresas Vinculadas LP",
+          "view": "bg",
+          "columns": [
+            "a57_cuentas_por_pagar_a_empresas_vinculadas_relacionadas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A58",
+          "concepto": "CxP Proveedores LP",
+          "view": "bg",
+          "columns": [
+            "a58_cuentas_por_pagar_proveedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A59",
+          "concepto": "CxP Acreedores LP",
+          "view": "bg",
+          "columns": [
+            "a59_cuentas_por_pagar_acreedores"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A59A",
+          "concepto": "Provisiones a largo plazo",
+          "view": "bg",
+          "columns": [
+            "a59a_provisiones_a_largo_plazo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A61",
+          "concepto": "CxP Accionistas LP",
+          "view": "bg",
+          "columns": [
+            "a61_cuentas_por_pagar_accionistas"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A62",
+          "concepto": "Otras Cuentas Por Pagar LP",
+          "view": "bg",
+          "columns": [
+            "a62_otras_cuentas_por_pagar_lp"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A63",
+          "concepto": "Otros Pasivos",
+          "view": "bg",
+          "columns": [
+            "a63_otros_pasivos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A40",
+          "concepto": "Sobregiro",
+          "view": "bg",
+          "columns": [
+            "a40_sobregiro"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A41",
+          "concepto": "Obligaciones Bancarias CP",
+          "view": "bg",
+          "columns": [
+            "a41_obligaciones_bancarias_cp"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A56",
+          "concepto": "Obligaciones a Largo Plazo",
+          "view": "bg",
+          "columns": [
+            "a56_obligaciones_a_largo_plazo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A75",
+          "concepto": "Total Patrimonio",
+          "view": "bg",
+          "columns": [
+            "a75_total_patrimonio"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A03",
+          "concepto": "Disponible",
+          "view": "bg",
+          "columns": [
+            "a03_disponible"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A09",
+          "concepto": "Bancos Capital de Trabajo",
+          "view": "bg",
+          "columns": [
+            "a09_bancos_capital_de_trabajo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A10",
+          "concepto": "Valores Negociables",
+          "view": "bg",
+          "columns": [
+            "a10_valores_negociables"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A27",
+          "concepto": "Inversiones",
+          "view": "bg",
+          "columns": [
+            "a27_inversiones"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A19",
+          "concepto": "Impuestos Diferidos activo",
+          "view": "bg",
+          "columns": [
+            "a19_impuestos_diferidos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A34",
+          "concepto": "Impuestos Diferidos LP activo",
+          "view": "bg",
+          "columns": [
+            "a34_impuestos_diferidos_a_largo_plazo"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A53",
+          "concepto": "Impuestos Diferidos pasivo",
+          "view": "bg",
+          "columns": [
+            "a53_impuestos_diferidos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        },
+        {
+          "code": "A60",
+          "concepto": "Impuestos Diferidos LP pasivo",
+          "view": "bg",
+          "columns": [
+            "a60_impuestos_diferidos"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": null
+        }
+      ]
+    },
+    {
+      "num": 8,
+      "name": "Eficiencia Fiscal",
+      "estado": "RETIRAR",
+      "items": []
+    },
+    {
+      "num": 9,
+      "name": "Chart · EBITDA % en el tiempo",
+      "estado": "Exponer",
+      "items": [
+        {
+          "code": "AGA30",
+          "concepto": "EBITDA % sobre ingresos",
+          "view": "pl",
+          "columns": [],
+          "missing": true,
+          "derive": "ebitda / total_ingreso",
+          "estado": "Exponer",
+          "present_in_extract": null
+        }
+      ]
+    },
+    {
+      "num": 10,
+      "name": "Chart · Tendencia de Ingresos",
+      "estado": "Listo",
+      "items": [
+        {
+          "code": "AGA4",
+          "concepto": "Total Ingresos",
+          "view": "pl",
+          "columns": [
+            "total_ingreso"
+          ],
+          "missing": false,
+          "derive": null,
+          "estado": "Listo",
+          "present_in_extract": {
+            "total_ingreso": true
+          }
+        }
+      ]
+    }
+  ]
+}
