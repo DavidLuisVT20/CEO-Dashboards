@@ -1253,6 +1253,19 @@ const ChartSlot = ({ minHeight, gridColumn, children }) => {
   );
 };
 
+// Placeholder de chart vacío (estado sin datos). Se renderiza EN LUGAR del chart
+// para no montar el componente con series vacías (evita ejes/escala sobre []).
+const EmptyChartMsg = ({ dims, title }) => (
+  <div style={{
+    width: dims.width, height: dims.height,
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: 6, fontFamily: tokens.typography.fontFamily, color: tokens.colors.textTertiary,
+  }}>
+    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{title}</div>
+    <div style={{ fontSize: 12, opacity: 0.8 }}>Sin datos</div>
+  </div>
+);
+
 // ==============================
 // Grid
 // ==============================
@@ -1305,7 +1318,7 @@ const FinanzasDashboardGrid = ({
       )}
 
       <ChartSlot minHeight={chartMinH} gridColumn={isWide ? "span 3" : `span ${cols}`}>
-        {(dims) => (
+        {(dims) => (barChartData && barChartData.bars && barChartData.bars.length ? (
           <BarChartWithTrendLine
             data={barChartData} dimensions={dims}
             config={{
@@ -1317,11 +1330,11 @@ const FinanzasDashboardGrid = ({
               yAxisFormat: (v) => `${v}%`,
             }}
           />
-        )}
+        ) : <EmptyChartMsg dims={dims} title="EBITDA % a través del tiempo" />)}
       </ChartSlot>
 
       <ChartSlot minHeight={chartMinH} gridColumn={isWide ? "span 3" : `span ${cols}`}>
-        {(dims) => (
+        {(dims) => (trendChartData && trendChartData.points && trendChartData.points.length ? (
           <TrendLineChart
             data={trendChartData} dimensions={dims}
             config={{
@@ -1331,7 +1344,7 @@ const FinanzasDashboardGrid = ({
               showErrorBars: conPpto,
             }}
           />
-        )}
+        ) : <EmptyChartMsg dims={dims} title="Tendencia de Ingresos" />)}
       </ChartSlot>
     </div>
   );
@@ -1617,6 +1630,12 @@ function buildKpisFromData(real, filters) {
   });
 }
 
+// Estado vacío GLOBAL (producción sin payload inyectado): todas las tarjetas
+// vacías con motivo. NUNCA el mock — no hay números que confundir con reales.
+function buildEmptyKpis(reason) {
+  return CARD_CATALOG.map((meta) => emptyCard(meta, reason));
+}
+
 // --- Series para charts (solo meses CERRADOS: el preliminar se excluye para que
 // un periodo incompleto nunca distorsione la tendencia) ---
 function closedSeries(real, filters) {
@@ -1727,24 +1746,26 @@ export default function App() {
     companias: [], años: [], meses: [], conPpto: true, moneda: "USD",
   });
 
-  // Datos reales cuando se inyectan; si no, el mock interno (fallback de prod).
-  // Con datos reales cargados NUNCA se usa el mock: un slice vacío da tarjetas
-  // "sin dato" VISIBLES (ver buildKpisFromData) — arreglo del fallback silencioso.
+  // Datos reales cuando se inyectan; si no (producción sin payload), ESTADO VACÍO,
+  // nunca el mock: no se despliegan cifras ficticias que el CEO pueda confundir con
+  // reales. Con datos reales, un slice vacío también da tarjetas "sin dato".
+  const hasReal = !!FINANZAS_REAL;
+  const NO_DATA = "Sin conexión a datos en este entorno";
   const kpiCards = useMemo(
-    () => (FINANZAS_REAL ? buildKpisFromData(FINANZAS_REAL, filters) : buildMockKpis()),
-    [filters],
+    () => (hasReal ? buildKpisFromData(FINANZAS_REAL, filters) : buildEmptyKpis(NO_DATA)),
+    [filters, hasReal],
   );
   const trendData = useMemo(
-    () => (FINANZAS_REAL ? buildRevenueTrend(FINANZAS_REAL, filters) : MOCK_TREND_DATA),
-    [filters],
+    () => (hasReal ? buildRevenueTrend(FINANZAS_REAL, filters) : { points: [] }),
+    [filters, hasReal],
   );
   const barData = useMemo(
-    () => (FINANZAS_REAL ? buildEbitdaPctBars(FINANZAS_REAL, filters) : MOCK_BAR_DATA),
-    [filters],
+    () => (hasReal ? buildEbitdaPctBars(FINANZAS_REAL, filters) : { bars: [] }),
+    [filters, hasReal],
   );
   const periodLabel = useMemo(
-    () => (FINANZAS_REAL ? currentPeriodLabel(FINANZAS_REAL, filters) : null),
-    [filters],
+    () => (hasReal ? currentPeriodLabel(FINANZAS_REAL, filters) : "Sin datos"),
+    [filters, hasReal],
   );
 
   return (
@@ -1754,6 +1775,17 @@ export default function App() {
         position: "relative", width: "100%", minHeight: "100vh", overflow: "auto",
       }}>
         <TopBar compact={isSmall} periodLabel={periodLabel} />
+        {!hasReal && (
+          <div style={{
+            margin: isSmall ? "8px 12px 0" : "10px 18px 0",
+            padding: "10px 14px", borderRadius: 10,
+            background: "rgba(231,92,224,0.10)", border: "1px solid rgba(231,92,224,0.40)",
+            color: tokens.colors.magenta, fontSize: 12, fontWeight: 600, lineHeight: 1.4,
+          }}>
+            Sin conexión a datos en este entorno · estado vacío. El tablero se puebla
+            desde la vista del warehouse; no se muestran cifras.
+          </div>
+        )}
         {size.width > 0 && (
           <div style={{
             padding: isSmall ? "12px 12px 0" : "16px 18px 0",
