@@ -1485,17 +1485,22 @@ const FINANZAS_REAL =
 
 const MONTH_ABBR = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-// Catálogo de tarjetas alineado al contrato (alcance Fase 3: consolidado).
-// Comps 1-4 con dato de la vista de P&L; 9 y 10 son charts (abajo); 5/6/7 salen
-// vacías con motivo legible (Balance sin extracto/periodo, impuestos ausente).
+// Catálogo de tarjetas (alcance Fase 3: consolidado). Orden = cascada operativa
+// que CIERRA en pantalla:  Ingresos − Costos Totales − G&A = EBITDA.
+// Costos Directos (AGA5) queda como DETALLE dentro de Costos Totales (no es una
+// resta adicional; anotado para que nadie lo reste dos veces). Charts 9/10 abajo.
+// 5/6/7 vacías con motivo (Balance sin extracto/periodo, impuestos ausente).
 const CARD_CATALOG = [
-  { comp: 1, code: "AGA29", id: "EBITDA",     title: "EBITDA",                       okr: "Crecimiento sostenible" },
-  { comp: 2, code: "AGA4",  id: "INGRESOS",   title: "Total Ingresos",               okr: "Crecimiento sostenible" },
-  { comp: 3, code: "AGA5",  id: "COSTOS_DIR", title: "Costos Directos de Operación", okr: "Control de costo directo" },
-  { comp: 4, code: "AGA25", id: "GAV",        title: "Gastos Generales (G&A)",       okr: "Disciplina de gasto" },
-  { comp: 5, empty: true,   id: "BALANCE",    title: "Balance General",              okr: "Solidez financiera" },
-  { comp: 6, empty: true,   id: "FCF",        title: "Free Cash Flow Incremental",   okr: "Generación de caja" },
-  { comp: 7, empty: true,   id: "ROIC",       title: "Return on Invested Capital",   okr: "Rentabilidad del capital" },
+  { comp: 2,    code: "AGA4",          id: "INGRESOS",   title: "Total Ingresos",               okr: "Crecimiento sostenible" },
+  { comp: null, code: "COSTOS_TOT_OP", id: "COSTOS_TOT", title: "Costos Totales de Operación",  okr: "Control de costo",
+    annotation: "Directos + otros + comercialización + indirectos" },
+  { comp: 4,    code: "AGA25",         id: "GAV",        title: "Gastos Generales (G&A)",       okr: "Disciplina de gasto" },
+  { comp: 1,    code: "AGA29",         id: "EBITDA",     title: "EBITDA",                       okr: "Crecimiento sostenible" },
+  { comp: 3,    code: "AGA5",          id: "COSTOS_DIR", title: "Costos Directos de Operación", okr: "Control de costo directo",
+    annotation: "Detalle · ya incluido en Costos Totales" },
+  { comp: 5,    empty: true,           id: "BALANCE",    title: "Balance General",              okr: "Solidez financiera" },
+  { comp: 6,    empty: true,           id: "FCF",        title: "Free Cash Flow Incremental",   okr: "Generación de caja" },
+  { comp: 7,    empty: true,           id: "ROIC",       title: "Return on Invested Capital",   okr: "Rentabilidad del capital" },
 ];
 
 // Compañías seleccionadas (vacío => todas => consolidado).
@@ -1554,7 +1559,7 @@ function pickPeriod(months, filters) {
 
 function statusForKpi(code, value) {
   if (value == null) return "pending";
-  if (code === "AGA5" || code === "AGA25") return "at-risk";       // costo/gasto: informativo
+  if (code === "AGA5" || code === "AGA25" || code === "COSTOS_TOT_OP") return "at-risk";  // costo/gasto: informativo
   if (code === "AGA29" || code === "AGA46" || code === "AGA56") return value >= 0 ? "on-track" : "off-track";
   return "on-track";
 }
@@ -1597,6 +1602,7 @@ function buildKpisFromData(real, filters) {
     return {
       id: meta.id,
       title: meta.title,
+      titleAnnotation: meta.annotation ? { text: meta.annotation } : undefined,
       value,
       valueUnit: cur.divisa,
       valueFormat: "currency",
@@ -1683,7 +1689,6 @@ const ValidationStrip = ({ real, filters }) => {
   const cur = pickPeriod(months, filters);
   if (!cur) return null;
   const scope = currentScopeLabel(real, filters);
-  const reconciled = !!real.meta.reconciled;
   const prelim = months.filter((m) => m.preliminar).slice(-1)[0] || null;
   const Badge = ({ bg, fg, brd, children }) => (
     <span style={{
@@ -1698,9 +1703,6 @@ const ValidationStrip = ({ real, filters }) => {
       <span style={{ fontSize: 11, color: tokens.colors.textTertiary, letterSpacing: "0.04em" }}>
         {scope} · {cur.divisa} · {MONTH_ABBR[cur.mes]} {cur.anio}
       </span>
-      {reconciled
-        ? <Badge bg="rgba(52,211,153,0.12)" fg={tokens.colors.statusOnTrack} brd="rgba(52,211,153,0.45)">✓ Validado vs IFC</Badge>
-        : <Badge bg="rgba(255,204,109,0.10)" fg={tokens.colors.statusAtRisk} brd="rgba(255,204,109,0.40)">En validación</Badge>}
       {prelim && (
         <Badge bg="rgba(231,92,224,0.10)" fg={tokens.colors.magenta} brd="rgba(231,92,224,0.40)">
           ⏳ {MONTH_ABBR[prelim.mes]} {prelim.anio} preliminar · excluido del titular

@@ -36,6 +36,20 @@ OUT = Path(__file__).resolve().parent / "output" / "finanzas_payload.json"
 SYN_COMPANY_ID = "CONSOLIDADO"
 SYN_COMPANY_NAME = "Addiuva Territorial (consolidado)"
 
+# Costos Totales de Operación (tarjeta nueva del contrato — opción C). La vista
+# expone estos rubros pero el contrato no los cardeaba por separado; su suma es la
+# base de costo que EBITDA ya neteó, y hace que la cascada cierre en pantalla:
+#   Ingresos − Costos Totales − G&A = EBITDA
+# Es aditiva (suma de flujos) -> agrega entre compañías como cualquier medida.
+# Nombres LITERALES de columna, typos incluidos.
+COSTOS_TOT_OP_COLS = [
+    "costo_directo_de_operaciones",
+    "otros_costos_de_operaciones",
+    "costo_directo_de_comercializacion",
+    "comisiones_brokers",
+    "costo_indirecto_operacion",
+]
+
 
 def _pl_code_to_column() -> dict[str, str]:
     """Inverso del mapeo para P&L: código Odoo -> nombre EXACTO de columna.
@@ -76,10 +90,17 @@ def build() -> dict:
     prelim = cm.classify_periods(periods)           # {(anio,mes): bool}
     closed = cm.last_closed_period(periods)          # (anio, mes) | None
 
+    ct_cols_ok = [c for c in COSTOS_TOT_OP_COLS if c in header]
+
     records = []
     for r in rows:
         anio, mes = int(r["anio"]), int(r["mes"])
         measures = {code: _fnum(r[col]) for code, col in usable.items()}
+        # Costos Totales de Operación (derivado). Solo si TODOS sus rubros están
+        # (regla de admisión: sin una columna -> sin la tarjeta, nunca parcial).
+        ct_parts = [_fnum(r[c]) for c in ct_cols_ok]
+        if len(ct_cols_ok) == len(COSTOS_TOT_OP_COLS) and all(p is not None for p in ct_parts):
+            measures["COSTOS_TOT_OP"] = sum(ct_parts)
         records.append({
             "company_id": SYN_COMPANY_ID,
             "company_name": SYN_COMPANY_NAME,
@@ -106,8 +127,8 @@ def build() -> dict:
             "closed_period": ({"anio": closed[0], "mes": closed[1]} if closed else None),
             "ratio_codes": ["AGA30"],   # se recalculan sobre agregados, no se suman
             "aga30_derive": {"num": cm.AGA30_NUM, "den": cm.AGA30_DEN},
+            "medidas_derivadas": {"COSTOS_TOT_OP": COSTOS_TOT_OP_COLS},
             "divisa": {"values": divisas, "mixed": divisa_mixed},
-            "reconciled": False,        # aún no reconciliado vs IFC -> "En validación"
             "companies": [
                 {"company_id": SYN_COMPANY_ID, "company_name": SYN_COMPANY_NAME, "pais": None}
             ],
