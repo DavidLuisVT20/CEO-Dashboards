@@ -710,6 +710,15 @@ const KPICard = ({ data, onClick, hideStatus }) => {
         )}
       </div>
 
+      {isPending && data.emptyReason && (
+        <div style={{
+          flexShrink: 0, marginTop: 2,
+          fontSize: "11px", lineHeight: 1.45,
+          color: tokens.colors.textTertiary,
+          fontStyle: "italic",
+        }}>{data.emptyReason}</div>
+      )}
+
       {mom && !isPending && (
         <div style={{ flexShrink: 0 }}>
           {mom.pending ? (
@@ -1149,23 +1158,22 @@ const DashboardHeader = ({ area, axis, okrText, variant = "expanded" }) => {
 // SLICER BAR
 // ==============================
 const SlicerBar = ({ filters, setFilters, real }) => {
-  const singlePais = (filters.paises || []).length === 1;
+  // Filtro principal: COMPAÑÍA (antes «País»). Las opciones vienen del payload;
+  // el consolidado es "todas". Con el extracto actual hay una sola compañía
+  // sintética; cuando la vista exponga company_id aparecen las ~34 sociedades y
+  // el mismo filtro rebana del lado del cliente sin más cambios.
+  const companyOptions = (real?.meta?.companies || []).map(
+    (c) => ({ value: c.company_id, label: c.company_name })
+  );
 
-  // Choosing país: clears sociedad drill-down; multi/none país forces USD (consolidated).
-  const onPaises = (v) =>
-    setFilters((f) => ({ ...f, paises: v, sociedades: [], moneda: v.length === 1 ? f.moneda : "USD" }));
+  // Elegir compañía: multi/ninguna fuerza USD (consolidado).
+  const onCompanias = (v) =>
+    setFilters((f) => ({ ...f, companias: v, moneda: v.length === 1 ? f.moneda : "USD" }));
 
-  // Sociedad options come from the single selected país (no sociedad without país).
-  let socOptions = [];
-  if (real && singlePais) {
-    const p = real.paises.find((x) => x.code === filters.paises[0]);
-    if (p) socOptions = p.sociedades.map((s) => ({ value: s.id, label: s.name }));
-  }
-  // Single drill-down: keep only the last picked sociedad.
-  const onSociedades = (v) => setFilters((f) => ({ ...f, sociedades: v.slice(-1) }));
-
+  // Local deshabilitado: el extracto viene en USD. Moneda local exige conversión
+  // desde la vista, no en el front (sumar divisas mezcladas no tiene sentido).
   const monedaOptions = [
-    { value: "ML", label: "Local", disabled: !singlePais },
+    { value: "ML", label: "Local", disabled: true },
     { value: "USD", label: "USD" },
   ];
 
@@ -1177,21 +1185,12 @@ const SlicerBar = ({ filters, setFilters, real }) => {
     position: "relative",
   }}>
     <MultiSelectDropdown
-      label="País"
-      placeholder="Consolidado (todos)"
-      options={COUNTRIES.map((c) => ({ value: c.code, label: c.label }))}
-      selected={filters.paises}
-      onChange={onPaises}
+      label="Compañía"
+      placeholder="Consolidado (todas)"
+      options={companyOptions}
+      selected={filters.companias}
+      onChange={onCompanias}
     />
-    {real && (
-      <MultiSelectDropdown
-        label="Razón social"
-        placeholder={singlePais ? "Todas (país)" : "Elige 1 país primero"}
-        options={socOptions}
-        selected={filters.sociedades}
-        onChange={onSociedades}
-      />
-    )}
     <MultiSelectDropdown
       label="Año"
       placeholder="Todos"
@@ -1254,6 +1253,19 @@ const ChartSlot = ({ minHeight, gridColumn, children }) => {
   );
 };
 
+// Placeholder de chart vacío (estado sin datos). Se renderiza EN LUGAR del chart
+// para no montar el componente con series vacías (evita ejes/escala sobre []).
+const EmptyChartMsg = ({ dims, title }) => (
+  <div style={{
+    width: dims.width, height: dims.height,
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: 6, fontFamily: tokens.typography.fontFamily, color: tokens.colors.textTertiary,
+  }}>
+    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{title}</div>
+    <div style={{ fontSize: 12, opacity: 0.8 }}>Sin datos</div>
+  </div>
+);
+
 // ==============================
 // Grid
 // ==============================
@@ -1306,7 +1318,7 @@ const FinanzasDashboardGrid = ({
       )}
 
       <ChartSlot minHeight={chartMinH} gridColumn={isWide ? "span 3" : `span ${cols}`}>
-        {(dims) => (
+        {(dims) => (barChartData && barChartData.bars && barChartData.bars.length ? (
           <BarChartWithTrendLine
             data={barChartData} dimensions={dims}
             config={{
@@ -1318,11 +1330,11 @@ const FinanzasDashboardGrid = ({
               yAxisFormat: (v) => `${v}%`,
             }}
           />
-        )}
+        ) : <EmptyChartMsg dims={dims} title="EBITDA % a través del tiempo" />)}
       </ChartSlot>
 
       <ChartSlot minHeight={chartMinH} gridColumn={isWide ? "span 3" : `span ${cols}`}>
-        {(dims) => (
+        {(dims) => (trendChartData && trendChartData.points && trendChartData.points.length ? (
           <TrendLineChart
             data={trendChartData} dimensions={dims}
             config={{
@@ -1332,7 +1344,7 @@ const FinanzasDashboardGrid = ({
               showErrorBars: conPpto,
             }}
           />
-        )}
+        ) : <EmptyChartMsg dims={dims} title="Tendencia de Ingresos" />)}
       </ChartSlot>
     </div>
   );
@@ -1341,7 +1353,7 @@ const FinanzasDashboardGrid = ({
 // ==============================
 // TopBar
 // ==============================
-const TopBar = ({ compact }) => (
+const TopBar = ({ compact, periodLabel }) => (
   <div className="topbar" style={{
     padding: compact ? "12px 16px" : "14px 22px",
     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -1365,7 +1377,7 @@ const TopBar = ({ compact }) => (
         padding: "6px 12px", borderRadius: 999,
         background: tokens.colors.surface,
         border: `1px solid ${tokens.colors.border}`,
-      }}>Feb 2026 · MTD</div>
+      }}>{periodLabel ?? "Feb 2026 · MTD"}</div>
       <div style={{
         width: 32, height: 32, borderRadius: "50%",
         background: `linear-gradient(135deg, ${tokens.colors.purple}, ${tokens.colors.magenta}, ${tokens.colors.gold})`,
@@ -1486,84 +1498,124 @@ const FINANZAS_REAL =
 
 const MONTH_ABBR = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-const KPI_CARD_META = {
-  AGA29: { id: "EBITDA", title: "EBITDA", okr: "Crecimiento sostenible" },
-  AGA4:  { id: "INGRESOS", title: "Total Ingresos", okr: "Crecimiento sostenible" },
-  AGA5:  { id: "SINIESTRALIDAD", title: "Siniestralidad", okr: "Control de costo directo" },
-  AGA8:  { id: "MBO", title: "Margen Bruto Operativo", okr: "Eficiencia operativa" },
-  AGA18: { id: "MNOV", title: "Margen Neto Op. & Venta", okr: "Eficiencia operativa" },
-  AGA24: { id: "MNC", title: "Margen Neto de Contribución", okr: "Eficiencia operativa" },
-  AGA25: { id: "GAV", title: "Gastos Generales (GAV)", okr: "Disciplina de gasto" },
-  AGA46: { id: "EBIT", title: "EBIT", okr: "Rentabilidad" },
-  AGA56: { id: "RESULTADO_NETO", title: "Resultado Neto", okr: "Rentabilidad" },
-};
+// Catálogo de tarjetas (alcance Fase 3: consolidado). Orden = cascada operativa
+// que CIERRA en pantalla:  Ingresos − Costos Totales − G&A = EBITDA.
+// Costos Directos (AGA5) queda como DETALLE dentro de Costos Totales (no es una
+// resta adicional; anotado para que nadie lo reste dos veces). Charts 9/10 abajo.
+// 5/6/7 vacías con motivo (Balance sin extracto/periodo, impuestos ausente).
+const CARD_CATALOG = [
+  { comp: 2,    code: "AGA4",          id: "INGRESOS",   title: "Total Ingresos",               okr: "Crecimiento sostenible" },
+  { comp: null, code: "COSTOS_TOT_OP", id: "COSTOS_TOT", title: "Costos Totales de Operación",  okr: "Control de costo",
+    annotation: "Directos + otros + comercialización + indirectos" },
+  { comp: 4,    code: "AGA25",         id: "GAV",        title: "Gastos Generales (G&A)",       okr: "Disciplina de gasto" },
+  { comp: 1,    code: "AGA29",         id: "EBITDA",     title: "EBITDA",                       okr: "Crecimiento sostenible" },
+  { comp: 3,    code: "AGA5",          id: "COSTOS_DIR", title: "Costos Directos de Operación", okr: "Control de costo directo",
+    annotation: "Detalle · ya incluido en Costos Totales" },
+  { comp: 5,    empty: true,           id: "BALANCE",    title: "Balance General",              okr: "Solidez financiera" },
+  { comp: 6,    empty: true,           id: "FCF",        title: "Free Cash Flow Incremental",   okr: "Generación de caja" },
+  { comp: 7,    empty: true,           id: "ROIC",       title: "Return on Invested Capital",   okr: "Rentabilidad del capital" },
+];
 
-// Resolve which slice (level / key / currency) the filters point to.
-function resolveSlice(filters) {
-  const soc = (filters.sociedades && filters.sociedades.length === 1) ? filters.sociedades[0] : null;
-  const paises = filters.paises || [];
-  let nivel, paisCode = null;
-  if (soc != null) nivel = "sociedad";
-  else if (paises.length === 1) { nivel = "pais"; paisCode = paises[0]; }
-  else nivel = "consolidado";
-  const moneda = (nivel === "consolidado") ? "USD" : (filters.moneda || "USD");
-  return { nivel, paisCode, companyId: soc, moneda };
+// Compañías seleccionadas (vacío => todas => consolidado).
+function selectedCompanyIds(real, filters) {
+  const all = (real.meta.companies || []).map((c) => c.company_id);
+  const picked = (filters.companias || []).filter((id) => all.includes(id));
+  return picked.length ? picked : all;
 }
 
-function sliceRecords(real, slice) {
-  return real.records
-    .filter((r) => {
-      if (r.nivel !== slice.nivel || r.moneda !== slice.moneda) return false;
-      if (slice.nivel === "pais" && r.pais_code !== slice.paisCode) return false;
-      if (slice.nivel === "sociedad" && r.company_id !== slice.companyId) return false;
-      return true;
-    })
-    .sort((a, b) => (a.anio - b.anio) || (a.mes - b.mes));
+// Agrega las medidas ADITIVAS entre las compañías seleccionadas, agrupando por
+// (anio, mes). Los ratios NO se suman: AGA30 (EBITDA %) se recalcula sobre los
+// agregados. El consolidado es este mismo camino con "todas" las compañías.
+function aggregateMonths(real, filters) {
+  const ids = new Set(selectedCompanyIds(real, filters));
+  const hasYear = (filters.años || []).length;
+  const byKey = new Map();
+  for (const r of real.records) {
+    if (!ids.has(r.company_id)) continue;
+    if (hasYear && !filters.años.includes(r.anio)) continue;
+    const key = r.anio * 100 + r.mes;
+    let acc = byKey.get(key);
+    if (!acc) {
+      acc = { anio: r.anio, mes: r.mes, divisa: r.divisa, preliminar: false, measures: {} };
+      byKey.set(key, acc);
+    }
+    acc.preliminar = acc.preliminar || !!r.preliminar;
+    for (const code in r.measures) {
+      const v = r.measures[code];
+      if (v == null) continue;
+      acc.measures[code] = (acc.measures[code] ?? 0) + v;
+    }
+  }
+  const arr = [...byKey.values()].sort((a, b) => (a.anio - b.anio) || (a.mes - b.mes));
+  for (const m of arr) {
+    const eb = m.measures.AGA29, ing = m.measures.AGA4;   // AGA30 = ebitda / total_ingreso
+    m.ebitdaPct = (ing && eb != null) ? eb / ing : null;
+  }
+  return arr;
 }
 
-// Display period: honor año/mes filters; otherwise default to the latest CLOSED
-// (non-preliminary) month so the dashboard never opens on an incomplete period.
-function pickPeriod(recs, filters) {
-  const hasYear = filters.años && filters.años.length;
-  const hasMonth = filters.meses && filters.meses.length;
-  let pool = recs;
-  if (hasYear) pool = pool.filter((r) => filters.años.includes(r.anio));
-  if (hasMonth) pool = pool.filter((r) => filters.meses.includes(r.mes));
-  if (!pool.length) pool = recs;
-  if (!pool.length) return null;
-  // No explicit period chosen -> prefer the last non-preliminary record.
+// Periodo a mostrar: respeta filtros de año/mes; si no, el último mes CERRADO
+// (el más reciente se marca preliminar) para no abrir en un periodo incompleto.
+function pickPeriod(months, filters) {
+  if (!months.length) return null;
+  const hasYear = (filters.años || []).length;
+  const hasMonth = (filters.meses || []).length;
+  let pool = months;
+  if (hasMonth) pool = pool.filter((m) => filters.meses.includes(m.mes));
+  if (!pool.length) pool = months;
   if (!hasYear && !hasMonth) {
-    const closed = pool.filter((r) => !r.preliminar);
+    const closed = pool.filter((m) => !m.preliminar);
     if (closed.length) return closed[closed.length - 1];
   }
   return pool[pool.length - 1];
 }
 
-function statusForKpi(aga, value) {
+function statusForKpi(code, value) {
   if (value == null) return "pending";
-  if (aga === "AGA5" || aga === "AGA25") return "at-risk";        // costos/gasto: informativo
-  if (aga === "AGA29" || aga === "AGA46" || aga === "AGA56") return value >= 0 ? "on-track" : "off-track";
+  if (code === "AGA5" || code === "AGA25" || code === "COSTOS_TOT_OP") return "at-risk";  // costo/gasto: informativo
+  if (code === "AGA29" || code === "AGA46" || code === "AGA56") return value >= 0 ? "on-track" : "off-track";
   return "on-track";
 }
 
-// Build the 9 KPI cards from the real payload for the current filters.
+// Tarjeta vacía con MOTIVO legible (regla de admisión del BR: sin dato -> vacío,
+// nunca 0, nunca inventado).
+function emptyCard(meta, reason) {
+  return {
+    id: meta.id, title: meta.title, value: null,
+    valueUnit: "USD", valueFormat: "currency",
+    pendingLabel: "Sin dato", emptyReason: reason,
+    okrLabel: meta.okr, status: "pending",
+    target: { value: null, unit: "USD", periodLabel: "—" },
+  };
+}
+
+// Construye las tarjetas para los filtros actuales. NUNCA cae al mock cuando hay
+// datos reales cargados: un slice vacío da tarjetas "sin dato" VISIBLES, no
+// números inventados (arreglo del fallback silencioso).
 function buildKpisFromData(real, filters) {
-  const slice = resolveSlice(filters);
-  const recs = sliceRecords(real, slice);
-  const cur = pickPeriod(recs, filters);
-  if (!cur) return buildMockKpis();
-  const i = recs.indexOf(cur);
-  const prev = i > 0 ? recs[i - 1] : null;
+  const months = aggregateMonths(real, filters);
+  const cur = pickPeriod(months, filters);
+  const empties = real.meta.empty_components || {};
+  if (!cur) {
+    return CARD_CATALOG.map((meta) =>
+      emptyCard(meta, meta.empty
+        ? (empties[String(meta.comp)] || "No disponible")
+        : "Sin datos para la compañía / período seleccionado."));
+  }
+  const idx = months.indexOf(cur);
+  const prev = idx > 0 ? months[idx - 1] : null;
   const periodLabel = `${MONTH_ABBR[cur.mes]} ${cur.anio}`;
-  const ingresos = cur.kpis.AGA4;
-  return (real.meta.kpi_order || Object.keys(KPI_CARD_META)).map((aga) => {
-    const meta = KPI_CARD_META[aga] || { id: aga, title: aga, okr: "" };
-    const value = cur.kpis[aga];
-    const prevVal = prev ? prev.kpis[aga] : null;
-    const pct = (ingresos && value != null && aga !== "AGA4") ? value / ingresos : null;
+  const ingresos = cur.measures.AGA4;
+  return CARD_CATALOG.map((meta) => {
+    if (meta.empty) return emptyCard(meta, empties[String(meta.comp)] || "No disponible");
+    const value = cur.measures[meta.code] ?? null;
+    if (value == null) return emptyCard(meta, `Columna de ${meta.title} ausente en la vista de P&L.`);
+    const prevVal = prev ? (prev.measures[meta.code] ?? null) : null;
+    const pct = (ingresos && meta.code !== "AGA4") ? value / ingresos : null;
     return {
       id: meta.id,
       title: meta.title,
+      titleAnnotation: meta.annotation ? { text: meta.annotation } : undefined,
       value,
       valueUnit: cur.divisa,
       valueFormat: "currency",
@@ -1573,9 +1625,51 @@ function buildKpisFromData(real, filters) {
         ? { value: null, unit: "%", periodLabel: "% s/ ingresos", formatted: `${(pct * 100).toFixed(1)}%` }
         : { value: null, unit: cur.divisa, periodLabel: periodLabel },
       okrLabel: meta.okr,
-      status: statusForKpi(aga, value),
+      status: statusForKpi(meta.code, value),
     };
   });
+}
+
+// Estado vacío GLOBAL (producción sin payload inyectado): todas las tarjetas
+// vacías con motivo. NUNCA el mock — no hay números que confundir con reales.
+function buildEmptyKpis(reason) {
+  return CARD_CATALOG.map((meta) => emptyCard(meta, reason));
+}
+
+// --- Series para charts (solo meses CERRADOS: el preliminar se excluye para que
+// un periodo incompleto nunca distorsione la tendencia) ---
+function closedSeries(real, filters) {
+  return aggregateMonths(real, filters).filter((m) => !m.preliminar);
+}
+// Comp 10 · Tendencia de Ingresos (total_ingreso en millones USD).
+function buildRevenueTrend(real, filters) {
+  const points = closedSeries(real, filters)
+    .filter((m) => m.measures.AGA4 != null)
+    .map((m) => ({ date: new Date(m.anio, m.mes - 1, 1), value: m.measures.AGA4 / 1e6, highlighted: true }));
+  return { points };
+}
+// Comp 9 · EBITDA % en el tiempo (AGA30 derivado sobre agregados).
+function buildEbitdaPctBars(real, filters) {
+  const bars = closedSeries(real, filters)
+    .filter((m) => m.ebitdaPct != null)
+    .map((m) => ({ date: new Date(m.anio, m.mes - 1, 1), value: +(m.ebitdaPct * 100).toFixed(2) }));
+  if (bars.length) bars[0].isBaseline = true;
+  return { bars };
+}
+
+// Etiquetas de alcance/periodo para el encabezado y la tira de validación.
+function currentScopeLabel(real, filters) {
+  const ids = filters.companias || [];
+  if (ids.length === 1) {
+    const c = (real.meta.companies || []).find((x) => x.company_id === ids[0]);
+    return c ? c.company_name : "Compañía";
+  }
+  return "Consolidado";
+}
+function currentPeriodLabel(real, filters) {
+  const cur = pickPeriod(aggregateMonths(real, filters), filters);
+  const scope = currentScopeLabel(real, filters);
+  return cur ? `${scope} · ${MONTH_ABBR[cur.mes]} ${cur.anio}` : scope;
 }
 
 // Small Local/USD switch (Local disabled on the multi-country consolidated view).
@@ -1610,13 +1704,11 @@ const SegmentedControl = ({ label, value, options, onChange }) => (
 // Validation badges for the current selection (per-country reconciliation + preliminary month).
 const ValidationStrip = ({ real, filters }) => {
   if (!real) return null;
-  const slice = resolveSlice(filters);
-  const recs = sliceRecords(real, slice);
-  const cur = pickPeriod(recs, filters);
+  const months = aggregateMonths(real, filters);
+  const cur = pickPeriod(months, filters);
   if (!cur) return null;
-  const isConsolidado = slice.nivel === "consolidado";
-  const reconciled = !!cur.reconciled;
-  const preliminar = !!cur.preliminar;
+  const scope = currentScopeLabel(real, filters);
+  const prelim = months.filter((m) => m.preliminar).slice(-1)[0] || null;
   const Badge = ({ bg, fg, brd, children }) => (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 6,
@@ -1628,18 +1720,15 @@ const ValidationStrip = ({ real, filters }) => {
     <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center",
                   padding: "0 18px 6px" }}>
       <span style={{ fontSize: 11, color: tokens.colors.textTertiary, letterSpacing: "0.04em" }}>
-        {isConsolidado ? "Consolidado multipaís" : `${cur.pais}`} · {cur.divisa} · {MONTH_ABBR[cur.mes]} {cur.anio}
+        {scope} · {cur.divisa} · {MONTH_ABBR[cur.mes]} {cur.anio}
       </span>
-      {!isConsolidado && (reconciled
-        ? <Badge bg="rgba(52,211,153,0.12)" fg={tokens.colors.statusOnTrack} brd="rgba(52,211,153,0.45)">✓ Validado vs IFC</Badge>
-        : <Badge bg="rgba(255,204,109,0.10)" fg={tokens.colors.statusAtRisk} brd="rgba(255,204,109,0.40)">En validación</Badge>)}
-      {preliminar && (
+      {prelim && (
         <Badge bg="rgba(231,92,224,0.10)" fg={tokens.colors.magenta} brd="rgba(231,92,224,0.40)">
-          ⏳ Mes preliminar · devengos sin cerrar
+          ⏳ {MONTH_ABBR[prelim.mes]} {prelim.anio} preliminar · excluido del titular
         </Badge>
       )}
       <span style={{ fontSize: 10, color: tokens.colors.textTertiary }}>
-        Regla territorial v0.1 (excl. Voccare/Ikatech) · datos reales Odoo
+        Regla territorial v0.1 (excl. Voccare/Ikatech) · vista P&L
       </span>
     </div>
   );
@@ -1654,13 +1743,29 @@ export default function App() {
   const isSmall = bp === "mobile" || bp === "tablet";
 
   const [filters, setFilters] = useState({
-    paises: [], sociedades: [], años: [], meses: [], conPpto: true, moneda: "USD",
+    companias: [], años: [], meses: [], conPpto: true, moneda: "USD",
   });
 
-  // Real data when injected; otherwise the built-in mock (production fallback).
+  // Datos reales cuando se inyectan; si no (producción sin payload), ESTADO VACÍO,
+  // nunca el mock: no se despliegan cifras ficticias que el CEO pueda confundir con
+  // reales. Con datos reales, un slice vacío también da tarjetas "sin dato".
+  const hasReal = !!FINANZAS_REAL;
+  const NO_DATA = "Sin conexión a datos en este entorno";
   const kpiCards = useMemo(
-    () => (FINANZAS_REAL ? buildKpisFromData(FINANZAS_REAL, filters) : buildMockKpis()),
-    [filters],
+    () => (hasReal ? buildKpisFromData(FINANZAS_REAL, filters) : buildEmptyKpis(NO_DATA)),
+    [filters, hasReal],
+  );
+  const trendData = useMemo(
+    () => (hasReal ? buildRevenueTrend(FINANZAS_REAL, filters) : { points: [] }),
+    [filters, hasReal],
+  );
+  const barData = useMemo(
+    () => (hasReal ? buildEbitdaPctBars(FINANZAS_REAL, filters) : { bars: [] }),
+    [filters, hasReal],
+  );
+  const periodLabel = useMemo(
+    () => (hasReal ? currentPeriodLabel(FINANZAS_REAL, filters) : "Sin datos"),
+    [filters, hasReal],
   );
 
   return (
@@ -1669,7 +1774,18 @@ export default function App() {
       <div className="addiuva-root addiuva-bg addiuva-grain" ref={ref} style={{
         position: "relative", width: "100%", minHeight: "100vh", overflow: "auto",
       }}>
-        <TopBar compact={isSmall} />
+        <TopBar compact={isSmall} periodLabel={periodLabel} />
+        {!hasReal && (
+          <div style={{
+            margin: isSmall ? "8px 12px 0" : "10px 18px 0",
+            padding: "10px 14px", borderRadius: 10,
+            background: "rgba(231,92,224,0.10)", border: "1px solid rgba(231,92,224,0.40)",
+            color: tokens.colors.magenta, fontSize: 12, fontWeight: 600, lineHeight: 1.4,
+          }}>
+            Sin conexión a datos en este entorno · estado vacío. El tablero se puebla
+            desde la vista del warehouse; no se muestran cifras.
+          </div>
+        )}
         {size.width > 0 && (
           <div style={{
             padding: isSmall ? "12px 12px 0" : "16px 18px 0",
@@ -1690,8 +1806,8 @@ export default function App() {
           <div style={{ position: "relative", zIndex: 1 }}>
             <FinanzasDashboardGrid
               kpiCards={kpiCards}
-              trendChartData={MOCK_TREND_DATA}
-              barChartData={MOCK_BAR_DATA}
+              trendChartData={trendData}
+              barChartData={barData}
               settings={{
                 area: "FINANZAS",
                 axisLabel: "Eje · Crecimiento y expansión",

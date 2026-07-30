@@ -38,6 +38,43 @@ AGA30_NUM, AGA30_DEN = "ebitda", "total_ingreso"
 # componente 7 no es calculable hasta que la vista la exponga.
 TAX_COLUMN = "impuestos"
 
+# Componentes DERIVADOS (Tipo=Derivado en el contrato): no son una columna de la
+# vista sino una operación sobre columnas literales. Su definición vive AQUÍ (capa
+# de mapeo), no en el builder, para que haya una sola fuente. Cuando el contrato
+# incorpore la fila, el generador puede emitirla; esta es la definición autoritativa.
+DERIVED_MEASURES = {
+    "COSTOS_TOT_OP": {
+        "concepto": "Costos Totales de Operación",
+        "tipo": "Derivado",
+        "op": "sum",
+        "columns": [
+            "costo_directo_de_operaciones",
+            "otros_costos_de_operaciones",
+            "costo_directo_de_comercializacion",
+            "comisiones_brokers",
+            "costo_indirecto_operacion",
+        ],
+        "nota": "Comp 3 (AGA5, Costos Directos) es detalle dentro de este total.",
+    },
+}
+
+
+def derived_value(code: str, get) -> float | None:
+    """Calcula una medida derivada sobre una fila. `get(col)` -> float | None.
+
+    Regla de admisión: si falta CUALQUIER columna, devuelve None (vacío, nunca
+    parcial). Solo soporta op='sum' (aditiva -> agrega entre compañías por suma).
+    """
+    d = DERIVED_MEASURES.get(code)
+    if not d:
+        return None
+    vals = [get(c) for c in d["columns"]]
+    if any(v is None for v in vals):
+        return None
+    if d["op"] == "sum":
+        return float(sum(vals))
+    return None
+
 
 @lru_cache(maxsize=1)
 def load_map() -> dict:
